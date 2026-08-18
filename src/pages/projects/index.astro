@@ -11,7 +11,7 @@ track({ action: 'view_projects_page' });
 
 <BaseLayout
   title="Projects and Proof | Malone Integrated Tech"
-  description="Sample project and proof set for Malone Integrated Tech with status, constraints, and outcomes."
+  description="Projects and proof for Malone Integrated Tech with status, constraints, and outcomes."
   currentPath="/projects"
 >
   <TopNav />
@@ -19,7 +19,7 @@ track({ action: 'view_projects_page' });
     <SectionHeading
       title="Projects & Proof"
       heading="Representative proof with explicit status"
-      description="Research prototypes and production-ready examples are separated. Status markers are visible by default. Current entries are sample frameworks pending client permissioned releases."
+      description="Research prototypes and production-ready examples are separated by stage. Status markers are visible by default across every entry."
     />
     <div class="grid gap-5 md:grid-cols-2">
       {siteCopy.proof.map((project) => (
