@@ -1,0 +1,29 @@
+---
+import type { ProcessStep } from '../../data/siteData';
+
+interface Props {
+  steps: ProcessStep[];
+}
+
+const { steps } = Astro.props as Props;
+---
+
+<div class="card-panel mt-6">
+  <ol class="relative grid gap-4 md:grid-cols-5">
+    {steps.map((step: ProcessStep, index: number) => (
+      <li class="relative">
+        <div class="process-step">
+          <div class="flex items-center gap-2">
+            <p class="status-rail">Step {index + 1}</p>
+            <p class="text-sm uppercase tracking-[0.14em] text-[#98a8c5]">{step.title} lock</p>
+          </div>
+          <h3 class="mt-2 text-lg font-semibold text-white">{step.title}</h3>
+          <p class="mt-2 text-sm text-muted">{step.detail}</p>
+        </div>
+        {index < Astro.props.steps.length - 1 ? (
+          <div class="absolute -right-1 top-1/2 hidden w-3 translate-x-full border-b border-[#6f8dff] md:block"></div>
+        ) : null}
+      </li>
+    ))}
+  </ol>
+</div>

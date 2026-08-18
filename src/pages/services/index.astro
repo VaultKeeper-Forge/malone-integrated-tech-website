@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TopNav from '../../components/layout/TopNav.astro';
+import Footer from '../../components/layout/Footer.astro';
+import SectionHeading from '../../components/sections/SectionHeading.astro';
+import { siteCopy } from '../../data/siteData';
+---
+
+<BaseLayout
+  title="Services | Malone Integrated Tech"
+  description="Service tracks for practical AI systems integration and continuity-focused delivery."
+  currentPath="/services"
+>
+  <TopNav />
+  <main class="section-shell pt-24">
+    <SectionHeading
+      title="Services"
+      heading="Implementation tracks tuned to small teams"
+      description="Clear ownership and review points for each delivery stage."
+    />
+    <div class="grid gap-5 md:grid-cols-3">
+      {siteCopy.services.map((service) => (
+        <article class="card-panel reveal">
+          <p class="chip">Cadence: {service.cadence}</p>
+          <h2 class="mt-3 text-2xl text-white font-semibold">{service.title}</h2>
+          <p class="mt-2 text-muted">{service.summary}</p>
+          <ul class="mt-4 space-y-2 text-sm text-slate-200">
+            {service.deliverables.map((deliverable) => (
+              <li class="pl-4 relative">
+                <span class="absolute left-0 top-2 h-1.5 w-1.5 rounded-full bg-signal"></span>
+                {deliverable}
+              </li>
+            ))}
+          </ul>
+        </article>
+      ))}
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

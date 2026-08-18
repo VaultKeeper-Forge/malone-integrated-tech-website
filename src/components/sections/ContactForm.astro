@@ -1,0 +1,87 @@
+<div class="card-panel reveal">
+  <form id="contact-form" class="grid gap-3">
+    <label class="grid gap-1 text-sm">
+      <span class="font-semibold text-white">Name</span>
+      <input name="name" required class="rounded-lg border border-[#2c3b56] bg-[#0a1220] px-3 py-2 text-white focus-visible" />
+    </label>
+    <label class="grid gap-1 text-sm">
+      <span class="font-semibold text-white">Email</span>
+      <input type="email" name="email" required class="rounded-lg border border-[#2c3b56] bg-[#0a1220] px-3 py-2 text-white focus-visible" />
+    </label>
+    <label class="grid gap-1 text-sm">
+      <span class="font-semibold text-white">Organization</span>
+      <input name="organization" class="rounded-lg border border-[#2c3b56] bg-[#0a1220] px-3 py-2 text-white focus-visible" />
+    </label>
+    <label class="grid gap-1 text-sm">
+      <span class="font-semibold text-white">Project Type</span>
+      <input name="projectType" required class="rounded-lg border border-[#2c3b56] bg-[#0a1220] px-3 py-2 text-white focus-visible" placeholder="e.g., Assistant build + integration" />
+    </label>
+    <label class="grid gap-1 text-sm">
+      <span class="font-semibold text-white">Timeline</span>
+      <select name="timeline" class="rounded-lg border border-[#2c3b56] bg-[#0a1220] px-3 py-2 text-white focus-visible">
+        <option>Within 2 weeks</option>
+        <option>1–2 months</option>
+        <option>Longer horizon</option>
+      </select>
+    </label>
+    <label class="grid gap-1 text-sm">
+      <span class="font-semibold text-white">Message</span>
+      <textarea name="message" required rows="5" class="rounded-lg border border-[#2c3b56] bg-[#0a1220] px-3 py-2 text-white focus-visible" placeholder="Scope, tools, and goals."></textarea>
+    </label>
+
+  <button type="submit" class="mt-2 rounded-full border border-[#4b5f87] bg-surface-soft px-4 py-2 text-sm font-semibold text-white transition hover:border-signal focus-visible">
+      Build a local intake packet
+    </button>
+    <p class="mt-2 text-xs text-muted">Preferred mailbox: curtis@maloneintegratedtech.com. Live routing is intentionally not enabled in this phase.</p>
+  </form>
+
+  <div id="contact-success" class="mt-4 hidden text-sm text-slate-200" role="status" aria-live="polite"></div>
+
+  <script>
+    const form = document.querySelector('#contact-form') as HTMLFormElement | null;
+    const status = document.querySelector('#contact-success') as HTMLElement | null;
+
+    form?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!form) {
+        return;
+      }
+
+      const formData = new FormData(form);
+
+      const payload = {
+        name: String(formData.get('name') || ''),
+        email: String(formData.get('email') || ''),
+        organization: String(formData.get('organization') || ''),
+        projectType: String(formData.get('projectType') || ''),
+        timeline: String(formData.get('timeline') || ''),
+        message: String(formData.get('message') || '')
+      };
+
+      if (!payload.name || !payload.email || !payload.projectType || !payload.message) {
+        if (status) {
+          status.classList.remove('hidden');
+          status.textContent = 'Please complete required fields before submit.';
+        }
+        return;
+      }
+
+      const envelope = {
+        status: 'stub',
+        payload: {
+          ...payload,
+          requestedAt: new Date().toISOString(),
+          source: 'website_form'
+        }
+      };
+
+      if (status) {
+        status.classList.remove('hidden');
+        status.textContent = `Captured locally for review. Envelope status: ${envelope.status}.`;
+      }
+
+      window.dispatchEvent(new CustomEvent('mit-contact-captured', { detail: envelope }));
+      form.reset();
+    });
+  </script>
+</div>

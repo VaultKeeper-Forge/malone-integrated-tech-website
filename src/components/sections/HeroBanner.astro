@@ -1,0 +1,48 @@
+---
+import { siteCopy } from '../../data/siteData';
+---
+
+<div class="card-panel reveal hero-band" data-cta="hero">
+  <div class="grid gap-7 lg:grid-cols-[340px_1fr] lg:items-end lg:gap-10">
+    <div class="rounded-2xl border border-[#223b5f] bg-[#06111e] p-4">
+      <img src="/brand/malone_mark_primary.svg" alt="" class="h-28 w-auto md:h-32" />
+      <p class="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#a9bfdc]">Calibration Mark</p>
+      <p class="mt-2 text-sm text-[#bdc8da]">
+        Geometric M with open corners, controlled blue locks, and restrained signal framing.
+      </p>
+      <div class="mt-4 border-t border-[#20314e] pt-3">
+        <p class="text-xs text-[#97a6bc]">Frame path:</p>
+        <p class="mt-1 text-sm text-white">Capture → Context → Tools → Action → Continuity</p>
+      </div>
+    </div>
+
+    <div>
+      <p class="chip">Integrated AI systems consultancy</p>
+      <h1 class="mt-4 text-4xl leading-tight font-semibold md:text-5xl text-white font-display">{siteCopy.hero.line}</h1>
+      <p class="mt-4 max-w-2xl text-lg text-muted">{siteCopy.hero.detail}</p>
+
+      <div class="mt-7 flex flex-wrap gap-3">
+        <a
+          href="/contact"
+          class="inline-flex items-center gap-2 rounded-full border border-[#4b5f87] bg-surface-soft px-5 py-2.5 text-sm font-semibold text-white transition hover:border-signal focus-visible"
+          data-cta="hero_primary"
+        >
+          Start a Discovery Call
+        </a>
+        <a
+          href="/#how-it-works"
+          class="inline-flex items-center gap-2 rounded-full border border-[#30405e] bg-transparent px-5 py-2.5 text-sm font-semibold text-slate-100 transition hover:border-[#6f85ff] focus-visible"
+          data-cta="hero_secondary"
+        >
+          See How It Works
+        </a>
+      </div>
+
+      <ul class="mt-8 grid gap-2 text-sm text-slate-300 sm:grid-cols-2">
+        <li class="pl-4 relative"><span class="absolute left-0 top-2 h-1.5 w-1.5 rounded-full bg-signal"></span>Capture and context boundary first</li>
+        <li class="pl-4 relative"><span class="absolute left-0 top-2 h-1.5 w-1.5 rounded-full bg-signal"></span>Calibration-style reliability over visual noise</li>
+        <li class="pl-4 relative"><span class="absolute left-0 top-2 h-1.5 w-1.5 rounded-full bg-signal"></span>Tooling mapped to existing operations</li>
+        <li class="pl-4 relative"><span class="absolute left-0 top-2 h-1.5 w-1.5 rounded-full bg-signal"></span>Continuity preserved through every stage</li>
+      </ul>
+    </div>
+  </div>

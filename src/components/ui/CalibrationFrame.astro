@@ -1,0 +1,11 @@
+<div class="relative rounded-3xl">
+  <div class="rounded-3xl p-0.5 bg-gradient-to-br from-[#1e3050] to-[#0d1a2f]">
+    <div class="calibration-frame p-4 md:p-6 rounded-[calc(1.35rem-2px)]">
+      <div class="calibration-corner absolute -left-2 -top-2 before:rotate-0 after:rotate-0"></div>
+      <div class="calibration-corner absolute -right-2 -top-2 before:rotate-180 after:rotate-180"></div>
+      <div class="calibration-corner calibration-corner--open absolute -left-2 -bottom-2 before:rotate-0 after:rotate-180"></div>
+      <div class="calibration-corner absolute -right-2 -bottom-2 before:rotate-180 after:rotate-0"></div>
+      <slot />
+    </div>
+  </div>
+</div>

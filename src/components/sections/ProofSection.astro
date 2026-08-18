@@ -1,0 +1,28 @@
+---
+import type { ProofCase } from '../../data/siteData';
+
+interface Props {
+  items: ProofCase[];
+}
+
+const { items } = Astro.props as Props;
+---
+
+<div class="grid gap-4 md:grid-cols-3">
+{items.map((item: ProofCase) => (
+    <article class="card-panel reveal">
+      <div class="flex flex-wrap items-center gap-2">
+        <p class="chip">Status: {item.status}</p>
+        <p class="status-rail">Evidence frame</p>
+      </div>
+      <h3 class="mt-2 text-xl text-white font-semibold">{item.title}</h3>
+      <p class="mt-2 text-sm text-muted">{item.summary}</p>
+      <p class="mt-3 text-sm text-slate-200"><strong>Outcome:</strong> {item.outcome}</p>
+      <div class="mt-3 flex flex-wrap gap-2">
+        {item.tags.map((tag: string) => (
+          <span class="chip">{tag}</span>
+        ))}
+      </div>
+    </article>
+  ))}
+</div>

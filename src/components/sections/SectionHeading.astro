@@ -1,0 +1,11 @@
+---
+const { title, heading, description = '' } = Astro.props;
+---
+
+<div class="max-w-3xl reveal">
+  <p class="chip">{title}</p>
+  <h2 class="section-title">{heading}</h2>
+  <p class="section-subtitle">{description}</p>
+  <div class="gradient-divider mt-6"></div>
+  <div class="brand-rule mt-2 h-4"></div>
+</div>

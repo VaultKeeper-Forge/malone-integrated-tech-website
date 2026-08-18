@@ -1,0 +1,13 @@
+# Logs
+# Runtime
+# Dependency directories
+# Production build
+# Env files
+/node_modules/
+/.astro/
+/.vercel
+/.output/
+/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

@@ -1,0 +1,20 @@
+{
+  "short_name": "MIT",
+  "name": "Malone Integrated Tech",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/malone_favicon_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#080a0d",
+  "background_color": "#080a0d"
+}
