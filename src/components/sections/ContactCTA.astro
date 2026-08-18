@@ -1,11 +1,15 @@
+---
+import { withBase } from '../../lib/paths';
+---
+
 <div class="card-panel reveal">
   <h2 class="text-3xl text-white font-semibold">Move from concept to controlled execution.</h2>
   <p class="mt-2 text-muted">
     If you're evaluating AI systems for a small team or solo operator, we can scope a practical, measurable implementation path.
   </p>
   <div class="mt-5 flex flex-wrap gap-3">
-    <a href="/contact" class="chip" data-cta="cta_contact">Open project intake form</a>
-    <a href="/services" class="chip" data-cta="cta_services">Review service tracks</a>
-    <a href="/projects" class="chip" data-cta="cta_projects">See project proofs</a>
+    <a href={withBase('/contact')} class="chip" data-cta="cta_contact">Open project intake form</a>
+    <a href={withBase('/services')} class="chip" data-cta="cta_services">Review service tracks</a>
+    <a href={withBase('/projects')} class="chip" data-cta="cta_projects">See project proofs</a>
   </div>
 </div>

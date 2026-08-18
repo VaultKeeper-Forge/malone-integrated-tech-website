@@ -1,11 +1,15 @@
 ---
 import { siteCopy } from '../../data/siteData';
+import { withBase } from '../../lib/paths';
+
+const contactPath = withBase('/contact');
+const howItWorksPath = `${withBase('/')}#how-it-works`;
 ---
 
 <div class="card-panel reveal hero-band" data-cta="hero">
   <div class="grid gap-7 lg:grid-cols-[340px_1fr] lg:items-end lg:gap-10">
     <div class="rounded-2xl border border-[#223b5f] bg-[#06111e] p-4">
-      <img src="/brand/malone_mark_primary.svg" alt="" class="h-28 w-auto md:h-32" />
+      <img src={withBase('/brand/malone_mark_primary.svg')} alt="" class="h-28 w-auto md:h-32" />
       <p class="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#a9bfdc]">Calibration Mark</p>
       <p class="mt-2 text-sm text-[#bdc8da]">
         Geometric M with open corners, controlled blue locks, and restrained signal framing.
@@ -23,14 +27,14 @@ import { siteCopy } from '../../data/siteData';
 
       <div class="mt-7 flex flex-wrap gap-3">
         <a
-          href="/contact"
+          href={contactPath}
           class="inline-flex items-center gap-2 rounded-full border border-[#4b5f87] bg-surface-soft px-5 py-2.5 text-sm font-semibold text-white transition hover:border-signal focus-visible"
           data-cta="hero_primary"
         >
           Start a Discovery Call
         </a>
         <a
-          href="/#how-it-works"
+          href={howItWorksPath}
           class="inline-flex items-center gap-2 rounded-full border border-[#30405e] bg-transparent px-5 py-2.5 text-sm font-semibold text-slate-100 transition hover:border-[#6f85ff] focus-visible"
           data-cta="hero_secondary"
         >

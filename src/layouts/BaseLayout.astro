@@ -1,8 +1,10 @@
 ---
 import '../styles/global.css';
+import { withBase } from '../lib/paths';
 
 const { title, description, currentPath = '/' } = Astro.props;
-const canonical = Astro.url.origin + currentPath;
+const canonical = Astro.url.origin + withBase(currentPath);
+const ogImage = withBase('/malone_favicon_master.svg');
 ---
 
 <!doctype html>
@@ -17,14 +19,14 @@ const canonical = Astro.url.origin + currentPath;
   <meta property="og:type" content="website" />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
-  <meta property="og:image" content="/malone_favicon_master.svg" />
+  <meta property="og:image" content={ogImage} />
   <meta property="twitter:card" content="summary_large_image" />
   <meta property="twitter:title" content={title} />
   <meta property="twitter:description" content={description} />
-  <meta property="twitter:image" content="/malone_favicon_master.svg" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="apple-touch-icon" href="/malone_favicon_512.png" />
-  <link rel="manifest" href="/site.webmanifest" />
+  <meta property="twitter:image" content={ogImage} />
+  <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+  <link rel="apple-touch-icon" href={withBase('/malone_favicon_512.png')} />
+  <link rel="manifest" href={withBase('/site.webmanifest')} />
   <link rel="canonical" href={canonical} />
 </head>
   <body>

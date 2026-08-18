@@ -1,13 +1,25 @@
+---
+import { withBase } from '../../lib/paths';
+
+const homePath = withBase('/');
+const whatWeBuildPath = `${homePath}#what-we-build`;
+const howItWorksPath = `${homePath}#how-it-works`;
+const researchPath = `${homePath}#research`;
+const proofPath = `${homePath}#proof`;
+const servicesPath = withBase('/services');
+const contactPath = withBase('/contact');
+---
+
 <nav class="sticky top-0 z-30 border-b border-[#1f2940] bg-[#060a10]/85 backdrop-blur">
   <div class="section-shell flex items-center justify-between py-4">
-    <a href="/" class="inline-flex items-center gap-2 rounded focus-visible">
+    <a href={homePath} class="inline-flex items-center gap-2 rounded focus-visible">
       <img
-        src="/brand/malone_mark_primary.svg"
+        src={withBase('/brand/malone_mark_primary.svg')}
         class="h-8 w-auto lg:hidden"
         alt="Malone Integrated Tech mark"
       />
       <img
-        src="/brand/malone_lockup_horizontal_dark.png"
+        src={withBase('/brand/malone_lockup_horizontal_dark.png')}
         class="hidden h-8 w-auto overflow-visible lg:block"
         alt="Malone Integrated Tech"
       />
@@ -15,23 +27,23 @@
     </a>
 
     <ul class="hidden gap-5 text-sm text-slate-300 lg:flex">
-      <li><a href="/#what-we-build" class="hover:text-white focus-visible">What We Build</a></li>
-      <li><a href="/#how-it-works" class="hover:text-white focus-visible">How It Works</a></li>
-      <li><a href="/#research" class="hover:text-white focus-visible">Research</a></li>
-      <li><a href="/#proof" class="hover:text-white focus-visible">Projects</a></li>
-      <li><a href="/services" class="hover:text-white focus-visible">Services</a></li>
-      <li><a href="/contact" class="hover:text-white focus-visible">Contact</a></li>
+      <li><a href={whatWeBuildPath} class="hover:text-white focus-visible">What We Build</a></li>
+      <li><a href={howItWorksPath} class="hover:text-white focus-visible">How It Works</a></li>
+      <li><a href={researchPath} class="hover:text-white focus-visible">Research</a></li>
+      <li><a href={proofPath} class="hover:text-white focus-visible">Projects</a></li>
+      <li><a href={servicesPath} class="hover:text-white focus-visible">Services</a></li>
+      <li><a href={contactPath} class="hover:text-white focus-visible">Contact</a></li>
     </ul>
 
     <details class="lg:hidden">
       <summary class="chip cursor-pointer">Menu</summary>
       <div class="absolute right-4 left-4 top-16 z-20 card-panel grid gap-2">
-        <a href="/#what-we-build" class="focus-visible">What We Build</a>
-        <a href="/#how-it-works" class="focus-visible">How It Works</a>
-        <a href="/#research" class="focus-visible">Research</a>
-        <a href="/#proof" class="focus-visible">Projects</a>
-        <a href="/services" class="focus-visible">Services</a>
-        <a href="/contact" class="focus-visible">Contact</a>
+        <a href={whatWeBuildPath} class="focus-visible">What We Build</a>
+        <a href={howItWorksPath} class="focus-visible">How It Works</a>
+        <a href={researchPath} class="focus-visible">Research</a>
+        <a href={proofPath} class="focus-visible">Projects</a>
+        <a href={servicesPath} class="focus-visible">Services</a>
+        <a href={contactPath} class="focus-visible">Contact</a>
       </div>
     </details>
   </div>
