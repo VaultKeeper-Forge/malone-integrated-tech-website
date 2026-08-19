@@ -1,4 +1,4 @@
-export type Severity = 'production' | 'pilot' | 'research';
+﻿export type Severity = 'production' | 'pilot' | 'research';
 
 export interface Capability {
   title: string;
@@ -57,30 +57,20 @@ export const siteCopy: SiteCopy = {
   },
   capabilities: [
     {
-      title: 'Integrated Assistant Systems',
+      title: 'Systems Architecture',
       description:
-        'Design and configure assistants that orchestrate work across communication, calendar, and document systems.'
+        'Assistant systems, context architecture, continuity, and knowledge systems shaped around the way work actually moves.'
     },
     {
-      title: 'Small Business AI Integration',
+      title: 'Human-AI Integration',
       description:
-        'Deploy practical AI that reduces repetitive overhead while preserving existing team patterns.'
+        'Practical AI deployment, human oversight, interfaces, and workflows that stay understandable to the people using them.'
     },
     {
       title: 'Workflow & Tool Integration',
       description:
-        'Connect applications and services through reliable integration patterns with versioned interfaces.'
+        'Applications, automation, connectors, and existing business systems joined through reliable integration patterns.'
     },
-    {
-      title: 'Context and Continuity Systems',
-      description:
-        'Build durable context and continuity layers so teams maintain consistent execution over time.'
-    },
-    {
-      title: 'Applied AI Solutions',
-      description:
-        'Pilot, evaluate, and harden production-ready AI implementations with transparent tradeoff logs.'
-    }
   ],
   process: [
     {
@@ -109,21 +99,21 @@ export const siteCopy: SiteCopy = {
       title: 'Knowledge Assist Rollout',
       summary:
         'Pilot for operational knowledge routing and recurring triage where context is often fragmented.',
-      outcome: 'Reduced handoff latency and cleaner action tracking across teams.',
+      outcome: 'Representative workflow for review; no public outcome claim yet.',
       status: 'pilot',
       tags: ['assistant systems', 'routing', 'handoff']
     },
     {
       title: 'Support Concierge Prototype',
       summary: 'Prototype handling for recurring support flows with strict escalation rules and guardrails.',
-      outcome: 'Faster response consistency in routine cases and safer escalation behavior.',
+      outcome: 'Prototype direction for review; no public outcome claim yet.',
       status: 'research',
       tags: ['support', 'escalation', 'pilot protocol']
     },
     {
       title: 'Connector Reliability Layer',
       summary: 'Reference implementation for syncing project context across tool stacks.',
-      outcome: 'Traceable action state and easier maintenance during system changes.',
+      outcome: 'Reference pattern for review; no public outcome claim yet.',
       status: 'production',
       tags: ['integration', 'observability', 'traceability']
     }
@@ -159,21 +149,22 @@ export const siteCopy: SiteCopy = {
       summary:
         'A practical mapping of current workflows, tools, and friction points before implementation.',
       deliverables: ['Workflow map', 'Risk log', 'Priority roadmap'],
-      cadence: '2–4 weeks'
+      cadence: '2â€“4 weeks'
     },
     {
       title: 'Assistant Integration Build',
       summary:
         'Develop production-ready assistant workflows with operational guardrails and onboarding documentation.',
       deliverables: ['Tool contracts', 'Fallback matrix', 'Runbook'],
-      cadence: '4–8 weeks'
+      cadence: '4â€“8 weeks'
     },
     {
       title: 'R&D Cohort Support',
       summary:
         'Experimental track for wearable, continuity, and ambient-capture work under review controls.',
       deliverables: ['Experiment protocol', 'Evaluation artifacts', 'Decision summary'],
-      cadence: '3–6 weeks'
+      cadence: '3â€“6 weeks'
     }
   ]
 };
+

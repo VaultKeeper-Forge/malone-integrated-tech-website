@@ -166,3 +166,60 @@ a {
   outline: 2px solid #7cb9ff;
   outline-offset: 3px;
 }
+
+.hero-band::before {
+  content: '';
+  position: absolute;
+  inset: 12% 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(47, 140, 255, 0.34), transparent);
+  pointer-events: none;
+}
+
+.hero-mark {
+  min-height: 220px;
+  background-color: rgba(6, 17, 30, 0.7);
+}
+
+.process-rail {
+  position: relative;
+}
+
+.process-rail::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  right: 8%;
+  left: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(47, 140, 255, 0.72), transparent);
+}
+
+.process-connector {
+  position: absolute;
+  top: 24px;
+  right: -12px;
+  width: 24px;
+  height: 1px;
+  background: #2f8cff;
+}
+
+@media (max-width: 767px) {
+  .process-rail::before {
+    top: 0;
+    bottom: 0;
+    left: 12px;
+    width: 1px;
+    height: auto;
+    background: linear-gradient(180deg, transparent, rgba(47, 140, 255, 0.72), transparent);
+  }
+
+  .process-connector {
+    top: auto;
+    right: auto;
+    bottom: -20px;
+    left: 12px;
+    width: 1px;
+    height: 20px;
+  }
+}

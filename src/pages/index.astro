@@ -1,4 +1,4 @@
----
+﻿---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import TopNav from '../components/layout/TopNav.astro';
 import Footer from '../components/layout/Footer.astro';
@@ -18,15 +18,15 @@ import { siteCopy } from '../data/siteData';
 >
   <TopNav />
 
-  <main class="space-y-16 pb-20">
-    <section class="section-shell pt-10">
+  <main class="space-y-24 pb-20">
+    <section class="section-shell pt-8 lg:pt-12">
       <HeroBanner />
     </section>
 
     <section id="what-we-build" class="section-shell">
       <SectionHeading
         title="What We Build"
-        heading="Capabilities engineered for real workflows"
+        heading="Capture -> Context -> Tools -> Action -> Continuity"
         description="No generic assistant layer. We build systems tuned to your existing process, then harden the interfaces."
       />
       <CapabilityGrid items={siteCopy.capabilities} />
@@ -35,7 +35,7 @@ import { siteCopy } from '../data/siteData';
     <section id="how-it-works" class="section-shell">
       <SectionHeading
         title="How It Works"
-        heading="Capture → Context → Tools → Action → Continuity"
+        heading="Capture -> Context -> Tools -> Action -> Continuity"
         description="A practical flow from signal to sustained execution."
       />
       <ProcessSection steps={siteCopy.process} />
@@ -44,7 +44,7 @@ import { siteCopy } from '../data/siteData';
     <section id="research" class="section-shell">
       <SectionHeading
         title="Research & Development"
-        heading="Research with engineering discipline"
+        heading="Capture -> Context -> Tools -> Action -> Continuity"
         description="Distinct from commercial operations until outcomes are validated."
       />
       <div class="grid gap-5 md:grid-cols-2">
@@ -68,9 +68,9 @@ import { siteCopy } from '../data/siteData';
 
     <section id="proof" class="section-shell">
       <SectionHeading
-        title="Projects & Proof"
-        heading="Proof with explicit outcomes"
-        description="Representative cards until final approvals and project permissions are completed."
+        title="Current Work"
+        heading="Capture -> Context -> Tools -> Action -> Continuity"
+        description="Representative systems, prototypes, and integration patterns under review."
       />
       <ProofSection items={siteCopy.proof} />
     </section>
@@ -99,3 +99,4 @@ import { siteCopy } from '../data/siteData';
     }
   </script>
 </BaseLayout>
+
