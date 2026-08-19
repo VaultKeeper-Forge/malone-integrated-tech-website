@@ -32,7 +32,7 @@ jobs:
         run: npm ci
 
       - name: Build site for GitHub Pages
-        run: npm run build:pages -- --site https://maloneintegratedtech.com --base /
+        run: npm run build:pages -- --site https://www.maloneintegratedtech.com --base /
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
