@@ -1,5 +1,5 @@
 ﻿---
-const { number = '00', title, heading, description = '', level = 2 } = Astro.props;
+const { number = '00', title, heading, mobileHeading = '', description = '', level = 2 } = Astro.props;
 ---
 
 <header class="section-heading reveal">
@@ -7,8 +7,14 @@ const { number = '00', title, heading, description = '', level = 2 } = Astro.pro
   <div class="section-heading__copy">
     <p class="eyebrow">{title}</p>
     {level === 1
-      ? <h1 class="section-title">{heading}</h1>
-      : <h2 class="section-title">{heading}</h2>}
+      ? <h1 class:list={['section-title', { 'section-title--responsive': mobileHeading }]}>
+          <span class="section-title__desktop">{heading}</span>
+          {mobileHeading && <span class="section-title__mobile">{mobileHeading}</span>}
+        </h1>
+      : <h2 class:list={['section-title', { 'section-title--responsive': mobileHeading }]}>
+          <span class="section-title__desktop">{heading}</span>
+          {mobileHeading && <span class="section-title__mobile">{mobileHeading}</span>}
+        </h2>}
     {description && <p class="section-subtitle">{description}</p>}
   </div>
 </header>

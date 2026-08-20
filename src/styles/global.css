@@ -146,6 +146,7 @@ p { margin: 0; }
 .section-heading.reveal-visible .section-heading__rail i { height: 100%; }
 .eyebrow { margin-bottom: 12px; color: var(--blue-bright); font: .68rem "Bahnschrift",sans-serif; letter-spacing: .18em; text-transform: uppercase; }
 .section-title { max-width: 920px; font-size: clamp(2.8rem,5.2vw,5.6rem); line-height: .98; text-wrap: balance; }
+.section-title__mobile { display: none; }
 .section-subtitle { max-width: 700px; margin-top: 23px; color: #929ca8; font-size: 1.02rem; line-height: 1.72; }
 
 .capability-system { position: relative; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
@@ -351,6 +352,9 @@ p { margin: 0; }
   .section-heading { grid-template-columns: 36px minmax(0,1fr); gap: 16px; margin-bottom: 46px; }
   .section-heading__rail { min-height: 135px; }
   .section-title { font-size: clamp(2.45rem,12vw,3.8rem); }
+  .section-title--responsive { max-width: 11ch; font-size: clamp(2.6rem,11.2vw,3.35rem); line-height: .96; }
+  .section-title--responsive .section-title__desktop { display: none; }
+  .section-title--responsive .section-title__mobile { display: block; }
   .section-subtitle { margin-top: 17px; font-size: .9rem; }
   .capability-node { min-height: 365px; padding: 23px; }
   .capability-node__icon { width: 72px; height: 72px; }
