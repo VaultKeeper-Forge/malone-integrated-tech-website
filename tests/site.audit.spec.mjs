@@ -5,7 +5,7 @@ const routes = ['/', '/services', '/research', '/projects', '/contact'];
 const productionOrigin = 'https://www.maloneintegratedtech.com';
 const screenshotRoot = process.env.MALONE_SCREENSHOT_DIR || 'C:/tmp/malone-site-screenshots';
 const mockContact = process.env.CONTACT_MODE === 'mock';
-const localOrigin = new URL(process.env.SITE_BASE_URL || 'http://127.0.0.1:4322').origin;
+const localOrigin = new URL(process.env.SITE_BASE_URL || 'http://127.0.0.1:4334').origin;
 
 function observe(page) {
   const faults = [];
@@ -26,6 +26,7 @@ async function mockContactPost(page) {
     const payload = {
       type: 'malone-contact-result',
       ok: true,
+      requestId: String(data.get('requestId') || ''),
       message: 'Message confirmed.',
       ...(bookingUrl ? { bookingUrl } : {})
     };

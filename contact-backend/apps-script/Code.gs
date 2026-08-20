@@ -26,24 +26,22 @@ function doGet() {
 
 function doPost(e) {
   const submittedAt = new Date();
+  let requestId = '';
 
   try {
     if (!e || !e.parameter) {
-      return contactError_('The submission was not readable. Please return to the form and try again.');
+      return contactError_('The submission was not readable. Please return to the form and try again.', requestId);
     }
 
     const payload = normalizePayload_(e.parameter);
+    requestId = payload.requestId;
     if (payload.website) {
-      return contactResponse_({
-        type: 'malone-contact-result',
-        ok: true,
-        message: 'Message confirmed.'
-      });
+      return contactSuccess_('', requestId);
     }
 
     const validation = validatePayload_(payload, submittedAt);
     if (!validation.ok) {
-      return contactError_(validation.message);
+      return contactError_(validation.message, requestId);
     }
 
     const properties = PropertiesService.getScriptProperties();
@@ -53,11 +51,11 @@ function doPost(e) {
     const bookingUrl = normalizeUrl_(properties.getProperty('BOOKING_URL') || '');
 
     if (!isEmail_(notificationTo)) {
-      return contactError_('Message routing is temporarily unavailable. Please use the direct email path.');
+      return contactError_('Message routing is temporarily unavailable. Please use the direct email path.', requestId);
     }
 
     if (payload.meetingRequested && !isGoogleBookingUrl_(bookingUrl)) {
-      return contactError_('Online scheduling is being calibrated. Please uncheck the meeting request or use the direct email path.');
+      return contactError_('Online scheduling is being calibrated. Please uncheck the meeting request or use the direct email path.', requestId);
     }
 
     const cache = CacheService.getScriptCache();
@@ -65,18 +63,18 @@ function doPost(e) {
     const existingState = cache.get(requestKey);
 
     if (existingState === 'complete') {
-      return contactSuccess_(payload.meetingRequested ? bookingUrl : '');
+      return contactSuccess_(payload.meetingRequested ? bookingUrl : '', requestId);
     }
 
     if (!existingState) {
       const rateResult = reserveRateLimit_(payload.email);
       if (!rateResult.ok) {
-        return contactError_(rateResult.message);
+        return contactError_(rateResult.message, requestId);
       }
     }
 
     if (MailApp.getRemainingDailyQuota() < 2) {
-      return contactError_('The message channel has reached its daily limit. Please use the direct email path.');
+      return contactError_('The message channel has reached its daily limit. Please use the direct email path.', requestId);
     }
 
     if (existingState !== 'owner_sent') {
@@ -87,9 +85,9 @@ function doPost(e) {
     sendCustomerConfirmation_(payload, submittedAt, notificationTo, bookingUrl);
     cache.put(requestKey, 'complete', MALONE_CONTACT_CONFIG.requestStateSeconds);
 
-    return contactSuccess_(payload.meetingRequested ? bookingUrl : '');
+    return contactSuccess_(payload.meetingRequested ? bookingUrl : '', requestId);
   } catch (error) {
-    return contactError_('The message could not be confirmed. Please try again or use the direct email path.');
+    return contactError_('The message could not be confirmed. Please try again or use the direct email path.', requestId);
   }
 }
 
@@ -311,9 +309,10 @@ function emailRow_(label, value) {
   ].join('');
 }
 
-function contactSuccess_(bookingUrl) {
+function contactSuccess_(bookingUrl, requestId) {
   const response = {
     type: 'malone-contact-result',
+    requestId: requestId,
     ok: true,
     message: 'Message confirmed.'
   };
@@ -321,9 +320,10 @@ function contactSuccess_(bookingUrl) {
   return contactResponse_(response);
 }
 
-function contactError_(message) {
+function contactError_(message, requestId) {
   return contactResponse_({
     type: 'malone-contact-result',
+    requestId: requestId,
     ok: false,
     message: message
   });

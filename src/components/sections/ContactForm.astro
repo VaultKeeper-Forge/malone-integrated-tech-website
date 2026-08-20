@@ -160,12 +160,19 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
     const confirmation = shell?.querySelector('[data-confirmation]') as HTMLElement | null;
     const bookingButton = shell?.querySelector('[data-booking-button]') as HTMLAnchorElement | null;
     const sendAnother = shell?.querySelector('[data-send-another]') as HTMLButtonElement | null;
-    const allowedMessageOrigins = new Set([
-      'https://script.google.com',
-      'https://script.googleusercontent.com'
-    ]);
+    const isAllowedMessageOrigin = (origin: string) => {
+      try {
+        const source = new URL(origin);
+        return source.protocol === 'https:' &&
+          (source.hostname === 'script.google.com' ||
+            source.hostname.endsWith('.script.googleusercontent.com'));
+      } catch {
+        return false;
+      }
+    };
 
     let pendingSubmission: {
+      requestId: string;
       email: string;
       message: string;
       meetingRequested: boolean;
@@ -250,6 +257,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
 
       const data = new FormData(form);
       pendingSubmission = {
+        requestId: String(data.get('requestId') ?? ''),
         email: String(data.get('email') ?? '').trim(),
         message: String(data.get('message') ?? '').trim(),
         meetingRequested: data.get('meetingRequested') === 'yes'
@@ -269,19 +277,20 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
     });
 
     window.addEventListener('message', (event) => {
-      if (!transport?.contentWindow || event.source !== transport.contentWindow) return;
-      if (!allowedMessageOrigins.has(event.origin)) return;
+      if (!transport?.contentWindow || !isAllowedMessageOrigin(event.origin)) return;
       const result = event.data as {
         type?: string;
+        requestId?: string;
         ok?: boolean;
         message?: string;
         bookingUrl?: string;
       };
       if (result?.type !== 'malone-contact-result') return;
+      if (!pendingSubmission || result.requestId !== pendingSubmission.requestId) return;
 
       window.clearTimeout(responseTimer);
 
-      if (!result.ok || !pendingSubmission || !form) {
+      if (!result.ok || !form) {
         setState('error', result.message || 'The message could not be confirmed. Please try again.');
         return;
       }
