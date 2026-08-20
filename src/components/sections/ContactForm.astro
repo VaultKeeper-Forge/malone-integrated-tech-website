@@ -165,7 +165,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
         const source = new URL(origin);
         return source.protocol === 'https:' &&
           (source.hostname === 'script.google.com' ||
-            source.hostname.endsWith('.script.googleusercontent.com'));
+            source.hostname.endsWith('-script.googleusercontent.com'));
       } catch {
         return false;
       }
