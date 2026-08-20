@@ -1,4 +1,4 @@
----
+﻿---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TopNav from '../../components/layout/TopNav.astro';
 import Footer from '../../components/layout/Footer.astro';
@@ -7,28 +7,92 @@ import ContactForm from '../../components/sections/ContactForm.astro';
 ---
 
 <BaseLayout
-  title="Contact | Malone Integrated Tech"
-  description="Request a project intake and start an assistant systems conversation."
+  title="Contact Desk | Malone Integrated Tech"
+  description="Contact Malone Integrated Tech about integrated assistant systems, business systems, tool integration, continuity, and applied AI."
   currentPath="/contact"
 >
   <TopNav />
-  <main class="section-shell pt-24">
-    <SectionHeading
-      title="Contact"
-      heading="Start with a practical scope conversation"
-      description="Share current workflows, current tools, and target outcome so we can propose an implementation path."
-    />
-    <div class="grid gap-6 lg:grid-cols-[1.1fr_.9fr]">
-      <ContactForm />
-      <aside class="card-panel reveal">
-        <h2 class="text-2xl font-semibold text-white">Contact path</h2>
-        <p class="mt-3 text-muted">Backend and provider integrations are intentionally abstracted during this phase.</p>
-        <p class="mt-4 text-muted">Mailbox: <a href="mailto:curtis@maloneintegratedtech.com" class="underline">curtis@maloneintegratedtech.com</a></p>
-        <p class="mt-4 text-sm text-slate-300">
-          You can connect email routing and CRM targets once the operational channel policy is approved.
-        </p>
-      </aside>
-    </div>
+  <main class="contact-page">
+    <section class="section-shell contact-page__section">
+      <SectionHeading
+      level={1}
+        number="05"
+        title="Contact Desk"
+        heading="Start with the system that needs to work better"
+        description="Share the friction, the tools involved, and the outcome you need. Your message routes directly to Malone Integrated Tech."
+      />
+
+      <div class="contact-page__layout">
+        <ContactForm />
+
+        <aside class="contact-console reveal" aria-label="Contact options and process">
+          <span class="panel-corner panel-corner--tl" aria-hidden="true"></span>
+          <span class="panel-corner panel-corner--br" aria-hidden="true"></span>
+
+          <header class="contact-console__header">
+            <p class="eyebrow">What happens next</p>
+            <h2>A clear route from message to conversation</h2>
+          </header>
+
+          <ol class="contact-console__route">
+            <li>
+              <span>01</span>
+              <div>
+                <strong>Message received</strong>
+                <p>Malone receives the complete project context and your preferred reply address.</p>
+              </div>
+            </li>
+            <li>
+              <span>02</span>
+              <div>
+                <strong>Scope reviewed</strong>
+                <p>We look for the practical system boundary, not a generic package to sell.</p>
+              </div>
+            </li>
+            <li>
+              <span>03</span>
+              <div>
+                <strong>Conversation aligned</strong>
+                <p>If you request a meeting, you choose an available time through Google scheduling.</p>
+              </div>
+            </li>
+          </ol>
+
+          <div class="contact-console__channels">
+            <div class="contact-console__channel">
+              <span class="contact-console__icon" aria-hidden="true">
+                <svg viewBox="0 0 40 40">
+                  <path d="M5 10h30v21H5z" />
+                  <path d="m6 12 14 11 14-11M5 29l10-9M35 29l-10-9" />
+                </svg>
+              </span>
+              <div>
+                <small>Direct email</small>
+                <a href="mailto:curtis@maloneintegratedtech.com">curtis@maloneintegratedtech.com</a>
+              </div>
+            </div>
+
+            <div class="contact-console__channel">
+              <span class="contact-console__icon" aria-hidden="true">
+                <svg viewBox="0 0 40 40">
+                  <path d="M7 10h26v23H7zM7 17h26M14 6v8M26 6v8" />
+                  <path d="M13 22h5v5h-5zM22 22h5v5h-5z" />
+                </svg>
+              </span>
+              <div>
+                <small>Online discovery</small>
+                <p>Available by request after your message is confirmed.</p>
+              </div>
+            </div>
+          </div>
+
+          <p class="contact-console__privacy">
+            No public phone number. No mailing list enrollment. Your message is used only to respond to this inquiry.
+          </p>
+        </aside>
+      </div>
+    </section>
   </main>
   <Footer />
 </BaseLayout>
+

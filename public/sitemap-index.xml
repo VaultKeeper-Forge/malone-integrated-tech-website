@@ -1,28 +1,29 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://maloneintegratedtech.com/</loc>
+    <loc>https://www.maloneintegratedtech.com/</loc>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://maloneintegratedtech.com/projects</loc>
+    <loc>https://www.maloneintegratedtech.com/projects</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://maloneintegratedtech.com/research</loc>
+    <loc>https://www.maloneintegratedtech.com/research</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://maloneintegratedtech.com/services</loc>
+    <loc>https://www.maloneintegratedtech.com/services</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://maloneintegratedtech.com/contact</loc>
+    <loc>https://www.maloneintegratedtech.com/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 </urlset>
+

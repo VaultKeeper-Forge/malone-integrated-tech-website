@@ -33,6 +33,8 @@ jobs:
 
       - name: Build site for GitHub Pages
         run: npm run build:pages -- --site https://www.maloneintegratedtech.com --base /
+        env:
+          PUBLIC_CONTACT_ENDPOINT: ${{ vars.PUBLIC_CONTACT_ENDPOINT }}
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

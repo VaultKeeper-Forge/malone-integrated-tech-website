@@ -1,33 +1,213 @@
----
+﻿---
 import '../styles/global.css';
 import { withBase } from '../lib/paths';
 
+interface Props {
+  title: string;
+  description: string;
+  currentPath?: string;
+}
+
 const { title, description, currentPath = '/' } = Astro.props;
-const canonical = Astro.url.origin + withBase(currentPath);
-const ogImage = withBase('/malone_favicon_master.svg');
+const siteOrigin = 'https://www.maloneintegratedtech.com';
+const normalizedPath = currentPath === '/'
+  ? '/'
+  : '/' + String(currentPath).replace(/^\/+|\/+$/g, '');
+const canonical = new URL(normalizedPath, siteOrigin).toString();
+const socialImage = new URL('/brand/malone_lockup_horizontal_dark.png', siteOrigin).toString();
+const logoImage = new URL('/brand/malone_mark_primary.svg', siteOrigin).toString();
+const organizationId = siteOrigin + '/#organization';
+const websiteId = siteOrigin + '/#website';
+const pageId = canonical + '#webpage';
+
+const pageKind = normalizedPath === '/contact'
+  ? 'ContactPage'
+  : normalizedPath === '/'
+    ? 'WebPage'
+    : 'CollectionPage';
+
+const serviceNames = [
+  'Integrated assistant systems',
+  'Business systems',
+  'Tool integration',
+  'Data and continuity',
+  'Applied AI solutions'
+];
+
+const researchNames = [
+  'Wearable AI',
+  'Ambient capture',
+  'Human-AI continuity',
+  'Long-term interaction',
+  'Persistent context'
+];
+
+const schemaGraph: Record<string, unknown>[] = [
+  {
+    '@type': 'Organization',
+    '@id': organizationId,
+    name: 'Malone Integrated Tech',
+    url: siteOrigin + '/',
+    logo: {
+      '@type': 'ImageObject',
+      url: logoImage,
+      contentUrl: logoImage,
+      caption: 'Malone Integrated Tech'
+    },
+    image: socialImage,
+    email: 'curtis@maloneintegratedtech.com',
+    description:
+      'Integrated AI assistant systems, business systems, tool integration, and applied AI research for people and small businesses.'
+  },
+  {
+    '@type': 'WebSite',
+    '@id': websiteId,
+    url: siteOrigin + '/',
+    name: 'Malone Integrated Tech',
+    description:
+      'Integrated assistant systems for people and small businesses.',
+    publisher: { '@id': organizationId },
+    inLanguage: 'en-US'
+  },
+  {
+    '@type': pageKind,
+    '@id': pageId,
+    url: canonical,
+    name: title,
+    description,
+    isPartOf: { '@id': websiteId },
+    about: { '@id': organizationId },
+    primaryImageOfPage: {
+      '@type': 'ImageObject',
+      url: socialImage
+    },
+    inLanguage: 'en-US'
+  }
+];
+
+if (normalizedPath !== '/') {
+  const label = normalizedPath
+    .slice(1)
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+
+  schemaGraph.push({
+    '@type': 'BreadcrumbList',
+    '@id': canonical + '#breadcrumb',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: siteOrigin + '/'
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: label,
+        item: canonical
+      }
+    ]
+  });
+}
+
+if (normalizedPath === '/services') {
+  schemaGraph.push({
+    '@type': 'ItemList',
+    '@id': canonical + '#services',
+    name: 'Malone Integrated Tech services',
+    itemListElement: serviceNames.map((name, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'Service',
+        name,
+        provider: { '@id': organizationId },
+        areaServed: 'US',
+        serviceType: name
+      }
+    }))
+  });
+}
+
+if (normalizedPath === '/research') {
+  schemaGraph.push({
+    '@type': 'ItemList',
+    '@id': canonical + '#research',
+    name: 'Malone Integrated Tech research areas',
+    itemListElement: researchNames.map((name, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name
+    }))
+  });
+}
+
+if (normalizedPath === '/contact') {
+  schemaGraph.push({
+    '@type': 'ContactPoint',
+    '@id': canonical + '#contact-point',
+    contactType: 'project inquiries',
+    email: 'curtis@maloneintegratedtech.com',
+    url: canonical,
+    availableLanguage: 'English'
+  });
+}
+
+const structuredData = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@graph': schemaGraph
+}).replace(/</g, '\u003c');
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en-US">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title}</title>
   <meta name="description" content={description} />
-  <meta name="theme-color" content="#080a0d" />
+  <meta
+    name="robots"
+    content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+  />
+  <meta name="author" content="Malone Integrated Tech" />
   <meta name="application-name" content="Malone Integrated Tech" />
+  <meta name="apple-mobile-web-app-title" content="Malone Integrated Tech" />
+  <meta name="theme-color" content="#080a0d" />
+  <meta name="msapplication-TileColor" content="#080a0d" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+  <link rel="canonical" href={canonical} />
+  <link rel="alternate" hreflang="en-US" href={canonical} />
+  <link rel="alternate" hreflang="x-default" href={canonical} />
+
   <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Malone Integrated Tech" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:url" content={canonical} />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
-  <meta property="og:image" content={ogImage} />
-  <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:title" content={title} />
-  <meta property="twitter:description" content={description} />
-  <meta property="twitter:image" content={ogImage} />
+  <meta property="og:image" content={socialImage} />
+  <meta property="og:image:secure_url" content={socialImage} />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:alt" content="Malone Integrated Tech calibration mark and wordmark" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={socialImage} />
+  <meta name="twitter:image:alt" content="Malone Integrated Tech calibration mark and wordmark" />
+
   <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
-  <link rel="apple-touch-icon" href={withBase('/malone_favicon_512.png')} />
+  <link rel="icon" type="image/png" sizes="512x512" href={withBase('/brand/malone_favicon_512.png')} />
+  <link rel="apple-touch-icon" sizes="512x512" href={withBase('/malone_favicon_512.png')} />
   <link rel="manifest" href={withBase('/site.webmanifest')} />
-  <link rel="canonical" href={canonical} />
+
+  <script is:inline type="application/ld+json" set:html={structuredData}></script>
 </head>
   <body>
     <div class="site-shell">
@@ -35,3 +215,4 @@ const ogImage = withBase('/malone_favicon_master.svg');
     </div>
   </body>
 </html>
+

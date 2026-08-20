@@ -2,14 +2,19 @@
 import { withBase } from '../../lib/paths';
 ---
 
-<div class="card-panel reveal">
-  <h2 class="text-3xl text-white font-semibold">Move from concept to controlled execution.</h2>
-  <p class="mt-2 text-muted">
-    If you're evaluating AI systems for a small team or solo operator, we can scope a practical, measurable implementation path.
-  </p>
-  <div class="mt-5 flex flex-wrap gap-3">
-    <a href={withBase('/contact')} class="chip" data-cta="cta_contact">Open project intake form</a>
-    <a href={withBase('/services')} class="chip" data-cta="cta_services">Review service tracks</a>
-    <a href={withBase('/projects')} class="chip" data-cta="cta_projects">See project proofs</a>
+<div class="contact-desk reveal">
+  <span class="lock-corner lock-corner--tl" aria-hidden="true"></span>
+  <span class="lock-corner lock-corner--tr" aria-hidden="true"></span>
+  <span class="lock-corner lock-corner--bl" aria-hidden="true"></span>
+  <span class="lock-corner lock-corner--br" aria-hidden="true"></span>
+  <div class="contact-desk__signal" aria-hidden="true"><div><span></span></div><p>Channel open</p></div>
+  <div class="contact-desk__copy">
+    <p class="eyebrow">Start a conversation</p>
+    <h2>Have a system that is not working together?</h2>
+    <p>Let us map the friction, align the tools, and define a practical path from scattered signals to sustained execution.</p>
+  </div>
+  <div class="contact-desk__actions">
+    <a href={withBase('/contact')} class="signal-button" data-cta="cta_contact">Map your system <span aria-hidden="true">+</span></a>
+    <a href="mailto:curtis@maloneintegratedtech.com" class="text-link">curtis@maloneintegratedtech.com</a>
   </div>
 </div>

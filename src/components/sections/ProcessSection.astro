@@ -1,28 +1,18 @@
-﻿---
+---
 import type { ProcessStep } from '../../data/siteData';
-
-interface Props {
-  steps: ProcessStep[];
-}
-
+interface Props { steps: ProcessStep[]; }
 const { steps } = Astro.props as Props;
 ---
 
-<div class="process-rail mt-8">
-  <ol class="relative grid gap-8 md:grid-cols-5 md:gap-0">
+<div class="process-system reveal" data-process-system>
+  <div class="process-system__track" aria-hidden="true"><span></span></div>
+  <ol>
     {steps.map((step: ProcessStep, index: number) => (
-      <li class="relative">
-        <div class="process-step relative">
-          <div class="flex items-center gap-2">
-            <p class="status-rail">Step {index + 1}</p>
-            <p class="text-sm uppercase tracking-[0.14em] text-[#98a8c5]">{step.title} lock</p>
-          </div>
-          <h3 class="mt-2 text-lg font-semibold text-white">{step.title}</h3>
-          <p class="mt-2 text-sm text-muted">{step.detail}</p>
-        </div>
-        {index < Astro.props.steps.length - 1 ? <div class="process-connector" aria-hidden="true"></div> : null}
+      <li class="process-stage" style={`--step-delay: ${index * 160}ms`}>
+        <div class="process-stage__node" aria-hidden="true"><i></i><span>0{index + 1}</span></div>
+        <div class="process-stage__copy"><p>{step.title}</p><span>{step.detail}</span></div>
       </li>
     ))}
   </ol>
+  <div class="process-system__readout" aria-hidden="true"><span>Input</span><i></i><span>Sustained execution</span></div>
 </div>
-

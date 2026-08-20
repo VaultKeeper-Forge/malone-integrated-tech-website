@@ -15,25 +15,27 @@ track({ action: 'view_projects_page' });
   currentPath="/projects"
 >
   <TopNav />
-  <main class="section-shell pt-24">
+  <main class="section-shell page-main">
     <SectionHeading
+      level={1}
       title="Projects & Proof"
       heading="Representative proof with explicit status"
       description="Research prototypes and production-ready examples are separated by stage. Status markers are visible by default across every entry."
     />
-    <div class="grid gap-5 md:grid-cols-2">
+    <div class="content-card-grid content-card-grid--two">
       {siteCopy.proof.map((project) => (
         <article class="card-panel reveal">
-          <div class="flex flex-wrap gap-2">
+          <div class="chip-row">
             <span class="chip">Status: {project.status}</span>
             {project.tags.map((tag) => <span class="chip">{tag}</span>)}
           </div>
-          <h2 class="mt-3 text-2xl font-semibold text-white">{project.title}</h2>
-          <p class="mt-2 text-muted">{project.summary}</p>
-          <p class="mt-3 text-sm text-slate-200"><strong>Outcome:</strong> {project.outcome}</p>
+          <h2 class="detail-card__title">{project.title}</h2>
+          <p class="detail-card__summary">{project.summary}</p>
+          <p class="detail-card__outcome"><strong>Outcome:</strong> {project.outcome}</p>
         </article>
       ))}
     </div>
   </main>
   <Footer />
 </BaseLayout>
+

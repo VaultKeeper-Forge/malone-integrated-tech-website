@@ -1,11 +1,14 @@
----
-const { title, heading, description = '' } = Astro.props;
+﻿---
+const { number = '00', title, heading, description = '', level = 2 } = Astro.props;
 ---
 
-<div class="max-w-3xl reveal">
-  <p class="chip">{title}</p>
-  <h2 class="section-title">{heading}</h2>
-  <p class="section-subtitle">{description}</p>
-  <div class="gradient-divider mt-6"></div>
-  <div class="brand-rule mt-2 h-4"></div>
-</div>
+<header class="section-heading reveal">
+  <div class="section-heading__rail" aria-hidden="true"><span>{number}</span><i></i></div>
+  <div class="section-heading__copy">
+    <p class="eyebrow">{title}</p>
+    {level === 1
+      ? <h1 class="section-title">{heading}</h1>
+      : <h2 class="section-title">{heading}</h2>}
+    {description && <p class="section-subtitle">{description}</p>}
+  </div>
+</header>

@@ -1,17 +1,20 @@
-﻿---
+---
 import { withBase } from '../../lib/paths';
 ---
 
-<footer class="border-t border-[#192338] mt-16">
-  <div class="section-shell py-8 text-sm text-slate-400">
-    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      <div class="flex items-center gap-2">
-        <img src={withBase('/brand/malone_mark_monochrome_white.svg')} alt="" class="h-5 w-auto" />
-        <p>(c) {new Date().getFullYear()} Malone Integrated Tech</p>
+<footer class="site-footer">
+  <div class="section-shell site-footer__inner">
+    <div class="site-footer__brand">
+      <img src={withBase('/brand/malone_mark_monochrome_white.svg')} alt="" />
+      <div>
+        <p>Malone Integrated Tech</p>
+        <span>Integrated assistant systems</span>
       </div>
-      <p>Technical systems for integrated AI operations.</p>
-      <a href={withBase('/projects')} class="underline decoration-dotted">Sample proof and projects</a>
+    </div>
+    <p class="site-footer__statement">Precision systems. Human direction. Durable continuity.</p>
+    <div class="site-footer__meta">
+      <a href="mailto:curtis@maloneintegratedtech.com">curtis@maloneintegratedtech.com</a>
+      <span>(c) {new Date().getFullYear()} Malone Integrated Tech</span>
     </div>
   </div>
 </footer>
-

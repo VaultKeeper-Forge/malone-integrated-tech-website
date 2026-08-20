@@ -1,50 +1,65 @@
----
+﻿---
 import { withBase } from '../../lib/paths';
 
 const homePath = withBase('/');
 const whatWeBuildPath = `${homePath}#what-we-build`;
 const howItWorksPath = `${homePath}#how-it-works`;
-const researchPath = `${homePath}#research`;
-const proofPath = `${homePath}#proof`;
+const researchPath = withBase('/research');
+const proofPath = withBase('/projects');
 const servicesPath = withBase('/services');
 const contactPath = withBase('/contact');
 ---
 
-<nav class="sticky top-0 z-30 border-b border-[#1f2940] bg-[#060a10]/85 backdrop-blur">
-  <div class="section-shell flex items-center justify-between py-4">
-    <a href={homePath} class="inline-flex items-center gap-2 rounded focus-visible">
-      <img
-        src={withBase('/brand/malone_mark_primary.svg')}
-        class="h-8 w-auto lg:hidden"
-        alt="Malone Integrated Tech mark"
-      />
-      <img
-        src={withBase('/brand/malone_lockup_horizontal_dark.png')}
-        class="hidden h-8 w-auto overflow-visible lg:block"
-        alt="Malone Integrated Tech"
-      />
-      <span class="sr-only">Malone Integrated Tech</span>
+<nav class="site-nav" aria-label="Primary navigation">
+  <div class="site-nav__progress" aria-hidden="true"><span></span></div>
+  <div class="section-shell site-nav__inner">
+    <a href={homePath} class="site-nav__brand focus-visible">
+      <img src={withBase('/brand/malone_mark_primary.svg')} class="site-nav__mark" alt="Malone Integrated Tech" />
+      <img src={withBase('/brand/malone_lockup_horizontal_dark.png')} class="site-nav__lockup" alt="" />
     </a>
-
-    <ul class="hidden gap-5 text-sm text-slate-300 lg:flex">
-      <li><a href={whatWeBuildPath} class="hover:text-white focus-visible">What We Build</a></li>
-      <li><a href={howItWorksPath} class="hover:text-white focus-visible">How It Works</a></li>
-      <li><a href={researchPath} class="hover:text-white focus-visible">Research</a></li>
-      <li><a href={proofPath} class="hover:text-white focus-visible">Projects</a></li>
-      <li><a href={servicesPath} class="hover:text-white focus-visible">Services</a></li>
-      <li><a href={contactPath} class="hover:text-white focus-visible">Contact</a></li>
+    <ul class="site-nav__links">
+      <li><a href={whatWeBuildPath} data-nav-section="what-we-build">Capabilities</a></li>
+      <li><a href={howItWorksPath} data-nav-section="how-it-works">Process</a></li>
+      <li><a href={researchPath} data-nav-section="research">R&amp;D</a></li>
+      <li><a href={proofPath} data-nav-section="proof">Current Work</a></li>
+      <li><a href={servicesPath}>Services</a></li>
     </ul>
-
-    <details class="lg:hidden">
-      <summary class="chip cursor-pointer">Menu</summary>
-      <div class="absolute right-4 left-4 top-16 z-20 card-panel grid gap-2">
-        <a href={whatWeBuildPath} class="focus-visible">What We Build</a>
-        <a href={howItWorksPath} class="focus-visible">How It Works</a>
-        <a href={researchPath} class="focus-visible">Research</a>
-        <a href={proofPath} class="focus-visible">Projects</a>
-        <a href={servicesPath} class="focus-visible">Services</a>
-        <a href={contactPath} class="focus-visible">Contact</a>
+    <a href={contactPath} class="signal-button signal-button--small site-nav__cta" data-cta="nav_contact">
+      Start a project <span aria-hidden="true">+</span>
+    </a>
+    <details class="site-nav__menu">
+      <summary class="site-nav__menu-trigger" role="button" aria-controls="site-mobile-nav" aria-expanded="false" aria-label="Open navigation"><span></span><span></span></summary>
+      <div class="site-nav__menu-panel" id="site-mobile-nav">
+        <a href={whatWeBuildPath}>Capabilities</a>
+        <a href={howItWorksPath}>Process</a>
+        <a href={researchPath}>Research &amp; Development</a>
+        <a href={proofPath}>Current Work</a>
+        <a href={servicesPath}>Services</a>
+        <a href={contactPath}>Start a project</a>
       </div>
     </details>
   </div>
 </nav>
+
+<script>
+  const menus = document.querySelectorAll<HTMLDetailsElement>('.site-nav__menu');
+
+  menus.forEach((menu) => {
+    const trigger = menu.querySelector<HTMLElement>('.site-nav__menu-trigger');
+    const sync = () => {
+      const expanded = menu.open;
+      trigger?.setAttribute('aria-expanded', String(expanded));
+      trigger?.setAttribute('aria-label', expanded ? 'Close navigation' : 'Open navigation');
+    };
+
+    menu.addEventListener('toggle', sync);
+    menu.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        menu.open = false;
+        sync();
+      });
+    });
+    sync();
+  });
+</script>
+

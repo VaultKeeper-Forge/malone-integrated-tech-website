@@ -1,4 +1,4 @@
-﻿---
+---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import TopNav from '../components/layout/TopNav.astro';
 import Footer from '../components/layout/Footer.astro';
@@ -18,64 +18,71 @@ import { siteCopy } from '../data/siteData';
 >
   <TopNav />
 
-  <main class="space-y-24 pb-20">
-    <section class="section-shell pt-8 lg:pt-12">
+  <main class="ultra-main">
+    <div class="ambient-field ambient-field--one" aria-hidden="true"></div>
+    <div class="ambient-field ambient-field--two" aria-hidden="true"></div>
+
+    <section class="section-shell hero-section" data-section="hero">
       <HeroBanner />
     </section>
 
-    <section id="what-we-build" class="section-shell">
+    <section id="what-we-build" class="section-shell ultra-section" data-section="what-we-build">
       <SectionHeading
+        number="01"
         title="What We Build"
-        heading="Capture -> Context -> Tools -> Action -> Continuity"
-        description="No generic assistant layer. We build systems tuned to your existing process, then harden the interfaces."
+        heading="Capabilities engineered for real workflows"
+        description="No generic assistant layer. We build systems around how people and small teams already work, then make the connections durable."
       />
       <CapabilityGrid items={siteCopy.capabilities} />
     </section>
 
-    <section id="how-it-works" class="section-shell">
+    <section id="how-it-works" class="section-shell ultra-section ultra-section--process" data-section="how-it-works">
       <SectionHeading
+        number="02"
         title="How It Works"
         heading="Capture -> Context -> Tools -> Action -> Continuity"
-        description="A practical flow from signal to sustained execution."
+        description="A controlled signal path from raw input to useful work that stays coherent over time."
       />
       <ProcessSection steps={siteCopy.process} />
     </section>
 
-    <section id="research" class="section-shell">
+    <section id="research" class="section-shell ultra-section" data-section="research">
       <SectionHeading
+        number="03"
         title="Research & Development"
-        heading="Capture -> Context -> Tools -> Action -> Continuity"
-        description="Distinct from commercial operations until outcomes are validated."
+        heading="Research with engineering discipline"
+        description="Focused investigation into how assistants can stay present, useful, and accountable across longer human relationships."
       />
-      <div class="grid gap-5 md:grid-cols-2">
-        {siteCopy.research.map((item) => (
-          <article class="card-panel reveal">
-            <p class="chip">Phase: {item.status}</p>
-            <h3 class="mt-2 text-xl text-white font-semibold">{item.title}</h3>
-            <p class="mt-2 text-sm text-muted">{item.summary}</p>
-            <ul class="mt-3 space-y-1 text-sm text-slate-300">
-              {item.constraints.map((constraint) => (
-                <li class="pl-4 relative">
-                  <span class="absolute left-0 top-2 h-1.5 w-1.5 rounded-full bg-signal"></span>
-                  {constraint}
-                </li>
-              ))}
+      <div class="research-system reveal">
+        <div class="research-system__circuit" aria-hidden="true"><span></span><i></i></div>
+        {siteCopy.research.map((item, index) => (
+          <article class:list={[
+            'research-node',
+            `research-node--${item.title === 'Human-AI Continuity' ? 'core' : `satellite-${index + 1}`}`,
+          ]}>
+            <div class="research-node__status"><i></i><span>{item.status}</span></div>
+            <h3>{item.title}</h3>
+            <p>{item.summary}</p>
+            <ul>
+              {item.constraints.map((constraint) => <li><span aria-hidden="true"></span>{constraint}</li>)}
             </ul>
+            <span class="research-node__corner" aria-hidden="true"></span>
           </article>
         ))}
       </div>
     </section>
 
-    <section id="proof" class="section-shell">
+    <section id="proof" class="section-shell ultra-section" data-section="proof">
       <SectionHeading
+        number="04"
         title="Current Work"
-        heading="Capture -> Context -> Tools -> Action -> Continuity"
-        description="Representative systems, prototypes, and integration patterns under review."
+        heading="Systems in practice"
+        description="Representative systems, prototypes, and integration patterns shown honestly at their current stage."
       />
       <ProofSection items={siteCopy.proof} />
     </section>
 
-    <section id="contact" class="section-shell">
+    <section id="contact" class="section-shell ultra-section ultra-section--contact" data-section="contact">
       <ContactCTA />
     </section>
   </main>
@@ -83,20 +90,91 @@ import { siteCopy } from '../data/siteData';
   <Footer />
 
   <script is:inline>
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!reduced) {
-      const observer = new IntersectionObserver((entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('reveal-visible');
-          }
-        }
-      }, { threshold: 0.2 });
+    document.documentElement.classList.add('motion-ready');
 
-      document.querySelectorAll('.reveal').forEach((node) => observer.observe(node));
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const revealNodes = document.querySelectorAll('.reveal');
+
+    if (reduced || !('IntersectionObserver' in window)) {
+      revealNodes.forEach((node) => node.classList.add('reveal-visible'));
     } else {
-      document.querySelectorAll('.reveal').forEach((node) => node.classList.add('reveal-visible'));
+      const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('reveal-visible');
+          if (entry.target.hasAttribute('data-process-system')) {
+            entry.target.classList.add('is-running');
+          }
+          observer.unobserve(entry.target);
+        });
+      }, { threshold: 0.16, rootMargin: '0px 0px -8% 0px' });
+
+      revealNodes.forEach((node) => revealObserver.observe(node));
     }
+
+    const navLinks = Array.from(document.querySelectorAll('[data-nav-section]'));
+    const sections = Array.from(document.querySelectorAll('[data-section]')).filter((section) => section.id);
+
+    if ('IntersectionObserver' in window) {
+      const sectionObserver = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible) return;
+        navLinks.forEach((link) => {
+          link.classList.toggle('is-active', link.getAttribute('data-nav-section') === visible.target.id);
+        });
+      }, { threshold: [0.18, 0.35, 0.55], rootMargin: '-18% 0px -54% 0px' });
+      sections.forEach((section) => sectionObserver.observe(section));
+    }
+
+    const root = document.documentElement;
+    let scrollFrame = 0;
+    const updateScroll = () => {
+      scrollFrame = 0;
+      const scrollable = Math.max(1, root.scrollHeight - window.innerHeight);
+      root.style.setProperty('--page-progress', String(Math.min(1, window.scrollY / scrollable)));
+    };
+    window.addEventListener('scroll', () => {
+      if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
+    }, { passive: true });
+    updateScroll();
+
+    if (!reduced) {
+      const heroStage = document.querySelector('[data-hero-stage]');
+      if (heroStage instanceof HTMLElement) {
+        heroStage.addEventListener('pointermove', (event) => {
+          const rect = heroStage.getBoundingClientRect();
+          const x = (event.clientX - rect.left) / rect.width;
+          const y = (event.clientY - rect.top) / rect.height;
+          heroStage.style.setProperty('--ry', `${(x - 0.5) * 24}deg`);
+          heroStage.style.setProperty('--rx', `${(0.5 - y) * 20}deg`);
+          heroStage.style.setProperty('--mx', `${x * 100}%`);
+          heroStage.style.setProperty('--my', `${y * 100}%`);
+        });
+        heroStage.addEventListener('pointerleave', () => {
+          heroStage.style.setProperty('--ry', '0deg');
+          heroStage.style.setProperty('--rx', '0deg');
+          heroStage.style.setProperty('--mx', '50%');
+          heroStage.style.setProperty('--my', '45%');
+        });
+      }
+
+      document.querySelectorAll('.tilt-surface').forEach((surface) => {
+        if (!(surface instanceof HTMLElement)) return;
+        surface.addEventListener('pointermove', (event) => {
+          const rect = surface.getBoundingClientRect();
+          surface.style.setProperty('--glow-x', `${event.clientX - rect.left}px`);
+          surface.style.setProperty('--glow-y', `${event.clientY - rect.top}px`);
+        });
+      });
+    }
+
+    document.querySelectorAll('.site-nav__menu-panel a').forEach((link) => {
+      link.addEventListener('click', () => {
+        const menu = link.closest('details');
+        if (menu) menu.removeAttribute('open');
+      });
+    });
   </script>
 </BaseLayout>
-

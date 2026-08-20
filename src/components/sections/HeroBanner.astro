@@ -1,39 +1,50 @@
-﻿---
+---
 import { siteCopy } from '../../data/siteData';
 import { withBase } from '../../lib/paths';
 
 const contactPath = withBase('/contact');
 const howItWorksPath = `${withBase('/')}#how-it-works`;
+const markPath = withBase('/brand/malone_mark_primary.svg');
 ---
 
-<div class="hero-band reveal" data-cta="hero">
-  <div class="grid gap-10 lg:grid-cols-[minmax(250px,340px)_1fr] lg:items-center lg:gap-16">
-    <div class="hero-mark calibration-frame flex min-h-[220px] items-center justify-center p-8 md:min-h-[280px]">
-      <img src={withBase('/brand/malone_mark_primary.svg')} alt="" class="h-36 w-auto md:h-48" />
+<div class="hero-banner reveal reveal-visible" data-cta="hero">
+  <div class="hero-stage" data-hero-stage>
+    <div class="hero-stage__grid" aria-hidden="true"></div>
+    <div class="hero-stage__orbit hero-stage__orbit--outer" aria-hidden="true"></div>
+    <div class="hero-stage__orbit hero-stage__orbit--inner" aria-hidden="true"></div>
+    <div class="hero-stage__scan" aria-hidden="true"></div>
+    <span class="lock-corner lock-corner--tl" aria-hidden="true"></span>
+    <span class="lock-corner lock-corner--tr" aria-hidden="true"></span>
+    <span class="lock-corner lock-corner--bl" aria-hidden="true"></span>
+    <span class="lock-corner lock-corner--br" aria-hidden="true"></span>
+    <span class="hero-stage__tick hero-stage__tick--left" aria-hidden="true"></span>
+    <span class="hero-stage__tick hero-stage__tick--right" aria-hidden="true"></span>
+    <div class="hero-stage__mark" aria-label="Malone Integrated Tech calibration mark">
+      <img src={markPath} class="hero-stage__mark-shadow" alt="" />
+      <img src={markPath} class="hero-stage__mark-depth" alt="" />
+      <img src={markPath} class="hero-stage__mark-face" alt="" />
+      <span class="hero-stage__glint" aria-hidden="true"></span>
     </div>
-
-    <div>
-      <p class="chip">Integrated AI systems consultancy</p>
-      <h1 class="mt-4 text-4xl leading-tight font-semibold md:text-5xl text-white font-display">{siteCopy.hero.line}</h1>
-      <p class="mt-4 max-w-2xl text-lg text-muted">{siteCopy.hero.detail}</p>
-
-      <div class="mt-7 flex flex-wrap gap-3">
-        <a
-          href={contactPath}
-          class="inline-flex items-center gap-2 rounded-full border border-[#4b5f87] bg-surface-soft px-5 py-2.5 text-sm font-semibold text-white transition hover:border-signal focus-visible"
-          data-cta="hero_primary"
-        >
-          Start a Discovery Call
-        </a>
-        <a
-          href={howItWorksPath}
-          class="inline-flex items-center gap-2 rounded-full border border-[#30405e] bg-transparent px-5 py-2.5 text-sm font-semibold text-slate-100 transition hover:border-[#6f85ff] focus-visible"
-          data-cta="hero_secondary"
-        >
-          See How It Works
-        </a>
-      </div>\n      <p class="mt-8 max-w-xl border-l border-signal/60 pl-4 text-sm uppercase tracking-[0.16em] text-[#a4b0cf]">Built for useful systems, not novelty.</p>
+    <div class="hero-stage__base" aria-hidden="true"></div>
+    <p class="hero-stage__status"><span></span> Systems aligned</p>
+  </div>
+  <div class="hero-copy">
+    <div class="hero-copy__eyebrow">
+      <span>Malone Integrated Tech</span><i aria-hidden="true"></i><span>Integrated systems</span>
+    </div>
+    <h1>{siteCopy.hero.line}</h1>
+    <p class="hero-copy__detail">{siteCopy.hero.detail}</p>
+    <div class="hero-copy__actions">
+      <a href={contactPath} class="signal-button" data-cta="hero_primary">Start a discovery <span aria-hidden="true">+</span></a>
+      <a href={howItWorksPath} class="text-link" data-cta="hero_secondary">Explore the system <span aria-hidden="true">-&gt;</span></a>
+    </div>
+    <div class="hero-copy__principles" aria-label="System principles">
+      <span><i></i> Human directed</span>
+      <span><i></i> Context aware</span>
+      <span><i></i> Built for continuity</span>
     </div>
   </div>
+  <a class="hero-scroll-cue" href="#what-we-build" aria-label="Continue to capabilities">
+    <span>Scroll to calibrate</span><i aria-hidden="true"></i>
+  </a>
 </div>
-
