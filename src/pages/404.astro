@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import TopNav from '../components/layout/TopNav.astro';
+import Footer from '../components/layout/Footer.astro';
+import SectionHeading from '../components/sections/SectionHeading.astro';
+---
+
+<BaseLayout
+  title="Page Not Found | Malone Integrated Tech"
+  description="The requested Malone Integrated Tech page could not be found."
+  currentPath="/404"
+  noindex
+>
+  <TopNav />
+  <main class="section-shell page-main">
+    <SectionHeading
+      level={1}
+      number="404"
+      title="Signal Not Found"
+      heading="This route is outside the frame"
+      description="The page may have moved or the address may be incomplete. Return to the main system or start with the Contact Desk."
+    />
+    <div class="hero-copy__actions">
+      <a class="signal-button" href="/">Return home <span aria-hidden="true">+</span></a>
+      <a class="text-link" href="/contact">Open Contact Desk <span aria-hidden="true">-&gt;</span></a>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

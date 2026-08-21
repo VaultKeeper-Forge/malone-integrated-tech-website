@@ -3,6 +3,7 @@ import react from '@astrojs/react';
 
 
 export default defineConfig({
+  site: 'https://www.maloneintegratedtech.com',
   integrations: [react()],
   devToolbar: { enabled: false },
 });
