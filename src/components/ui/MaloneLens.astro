@@ -1,0 +1,895 @@
+---
+import { lensPrototypeCopy } from '../../data/lensCopy';
+
+const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
+---
+
+<div class="mit-lens" data-mit-lens data-state="closed" data-direction="down">
+  <button
+    class="mit-lens__trigger"
+    type="button"
+    aria-controls="mit-lens-aperture"
+    aria-expanded="false"
+    aria-label="Open the Malone Integrated Tech Lens for everyday wording"
+    data-lens-trigger
+  >
+    <span class="mit-lens__icon" aria-hidden="true">
+      <svg viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="7"></circle>
+        <path d="M5 11V5h6M21 5h6v6M27 21v6h-6M11 27H5v-6"></path>
+      </svg>
+    </span>
+    <span class="mit-lens__trigger-copy">
+      <strong data-lens-trigger-label>Lens</strong>
+      <small data-lens-trigger-detail>Everyday user view</small>
+    </span>
+  </button>
+
+  <section
+    class="mit-lens__aperture"
+    id="mit-lens-aperture"
+    aria-label="Malone Integrated Tech Lens"
+    aria-hidden="true"
+    inert
+    data-lens-aperture
+  >
+    <span class="mit-lens__corner mit-lens__corner--tl" aria-hidden="true"></span>
+    <span class="mit-lens__corner mit-lens__corner--tr" aria-hidden="true"></span>
+    <span class="mit-lens__corner mit-lens__corner--bl" aria-hidden="true"></span>
+    <span class="mit-lens__corner mit-lens__corner--br" aria-hidden="true"></span>
+
+    <header class="mit-lens__header">
+      <div class="mit-lens__identity">
+        <span>Malone Integrated Tech Lens</span>
+        <strong>Everyday user view active</strong>
+        <small>Scroll normally. The Lens translates what passes through.</small>
+      </div>
+      <div class="mit-lens__controls">
+        <button type="button" data-lens-semantic>Everyday user view</button>
+        <button type="button" data-lens-close>Close</button>
+      </div>
+    </header>
+
+    <div class="mit-lens__field" aria-hidden="true" data-lens-field>
+      <div class="mit-lens__plane mit-lens__plane--technical" data-lens-technical></div>
+      <div class="mit-lens__plane mit-lens__plane--everyday" data-lens-everyday></div>
+      <div class="mit-lens__band mit-lens__band--top"><span>Recompose</span></div>
+      <div class="mit-lens__scan"></div>
+    </div>
+
+  </section>
+
+  <p class="mit-lens__live" aria-live="polite" aria-atomic="true" data-lens-live></p>
+  <script type="application/json" data-lens-copy set:html={copyPayload}></script>
+</div>
+
+<script is:inline>
+  (() => {
+    const root = document.querySelector('[data-mit-lens]');
+    if (!root || root.dataset.ready === 'true') return;
+    root.dataset.ready = 'true';
+
+    const trigger = root.querySelector('[data-lens-trigger]');
+    const aperture = root.querySelector('[data-lens-aperture]');
+    const field = root.querySelector('[data-lens-field]');
+    const technicalPlane = root.querySelector('[data-lens-technical]');
+    const everydayPlane = root.querySelector('[data-lens-everyday]');
+    const closeButton = root.querySelector('[data-lens-close]');
+    const semanticButton = root.querySelector('[data-lens-semantic]');
+    const live = root.querySelector('[data-lens-live]');
+    const directionReadout = root.querySelector('[data-lens-direction]');
+    const triggerLabel = root.querySelector('[data-lens-trigger-label]');
+    const triggerDetail = root.querySelector('[data-lens-trigger-detail]');
+    const copyNode = root.querySelector('[data-lens-copy]');
+    const source = document.querySelector('.site-shell');
+
+    if (
+      !trigger ||
+      !aperture ||
+      !field ||
+      !technicalPlane ||
+      !everydayPlane ||
+      !closeButton ||
+      !semanticButton ||
+      !live ||
+      !copyNode ||
+      !source
+    ) {
+      if (trigger) {
+        trigger.disabled = true;
+        trigger.setAttribute('aria-label', 'Everyday wording preview unavailable');
+      }
+      root.dataset.state = 'unavailable';
+      return;
+    }
+
+    let entries = [];
+    try {
+      entries = JSON.parse(copyNode.textContent || '[]');
+    } catch {
+      entries = [];
+    }
+
+    const copyMap = new Map(entries.map((entry) => [entry.technical, entry]));
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const lowPower =
+      (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+      (navigator.deviceMemory && navigator.deviceMemory <= 4);
+    root.dataset.motion = reducedMotion.matches ? 'reduced' : lowPower ? 'lite' : 'full';
+
+    let mirrorReady = false;
+    let semanticActive = false;
+    let semanticNodes = [];
+    let frameRequest = 0;
+    let lastScrollY = window.scrollY;
+    let velocityTimer = 0;
+
+    const normalize = (value) => value.replace(/\s+/g, ' ').trim();
+    const announce = (message) => {
+      live.textContent = '';
+      window.setTimeout(() => {
+        live.textContent = message;
+      }, 20);
+    };
+
+    const prepareClone = (clone, everyday) => {
+      clone.setAttribute('aria-hidden', 'true');
+      clone.setAttribute('inert', '');
+      clone.classList.add('mit-lens__mirror');
+      clone.querySelectorAll('script, style, link, .mit-lens').forEach((node) => node.remove());
+      clone.querySelectorAll('[id]').forEach((node) => node.removeAttribute('id'));
+      clone
+        .querySelectorAll('a, button, input, select, textarea, summary, [tabindex]')
+        .forEach((node) => node.setAttribute('tabindex', '-1'));
+      clone.querySelectorAll('.reveal').forEach((node) => {
+        node.classList.add('reveal-visible');
+        node.style.setProperty('opacity', '1', 'important');
+        node.style.setProperty('visibility', 'visible', 'important');
+        node.style.setProperty('transform', 'none', 'important');
+        node.style.setProperty('transition', 'none', 'important');
+      });
+
+      if (!everyday) return clone;
+      const walker = document.createTreeWalker(clone, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach((node) => {
+        const raw = node.nodeValue || '';
+        const entry = copyMap.get(normalize(raw));
+        if (!entry || !node.parentNode) return;
+        const leading = raw.match(/^\s+/)?.[0] || '';
+        const trailing = raw.match(/\s*$/)?.[0] || '';
+        const span = document.createElement('span');
+        span.className = 'mit-lens__mapped';
+        span.dataset.lensKey = entry.key;
+        span.textContent = `${leading}${entry.everyday}${trailing}`;
+        node.parentNode.replaceChild(span, node);
+      });
+      return clone;
+    };
+
+    const createMirrorPair = () => {
+      const sourceElements = Array.from(source.querySelectorAll('*')).filter(
+        (element) =>
+          !element.closest('.mit-lens') &&
+          !['SCRIPT', 'STYLE', 'LINK'].includes(element.tagName)
+      );
+      const metrics = new Map();
+
+      sourceElements.forEach((element, index) => {
+        const key = String(index);
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+        element.dataset.lensMirrorNode = key;
+        metrics.set(key, {
+          width: rect.width,
+          height: rect.height,
+          display: style.display,
+          fontSize: Number.parseFloat(style.fontSize) || 16,
+          lineHeight: Number.parseFloat(style.lineHeight) || (Number.parseFloat(style.fontSize) || 16) * 1.2,
+        });
+      });
+
+      const technical = source.cloneNode(true);
+      const everyday = source.cloneNode(true);
+      sourceElements.forEach((element) => element.removeAttribute('data-lens-mirror-node'));
+      return { technical, everyday, metrics };
+    };
+
+    const lockEverydayGeometry = (metrics) => {
+      const holders = new Map();
+      everydayPlane.querySelectorAll('.mit-lens__mapped').forEach((mapped) => {
+        let holder = mapped.closest('[data-lens-mirror-node]');
+        while (holder) {
+          const metric = metrics.get(holder.dataset.lensMirrorNode || '');
+          if (metric && metric.display !== 'inline' && metric.display !== 'contents') break;
+          holder = holder.parentElement?.closest('[data-lens-mirror-node]') || null;
+        }
+        if (holder) holders.set(holder.dataset.lensMirrorNode, holder);
+      });
+
+      holders.forEach((holder, key) => {
+        const metric = metrics.get(key);
+        if (!metric || metric.width <= 0 || metric.height <= 0) return;
+        holder.style.setProperty('box-sizing', 'border-box', 'important');
+        holder.style.setProperty('width', `${metric.width}px`, 'important');
+        holder.style.setProperty('min-width', `${metric.width}px`, 'important');
+        holder.style.setProperty('max-width', `${metric.width}px`, 'important');
+        holder.style.setProperty('height', 'auto', 'important');
+        holder.style.setProperty('min-height', `${metric.height}px`, 'important');
+        holder.style.setProperty('overflow', 'visible', 'important');
+        holder.style.setProperty('position', 'relative', 'important');
+        holder.style.setProperty('z-index', '30', 'important');
+
+        let fontSize = metric.fontSize < 12
+          ? 12
+          : metric.fontSize < 18
+            ? Math.max(15, metric.fontSize * 1.08)
+            : metric.fontSize;
+        const lineHeightRatio = metric.fontSize >= 28
+          ? Math.max(metric.lineHeight / metric.fontSize, 1.08)
+          : Math.max(metric.lineHeight / metric.fontSize, 1.35);
+        holder.style.setProperty('font-size', `${fontSize}px`, 'important');
+        holder.style.setProperty('line-height', String(lineHeightRatio), 'important');
+
+        let readingPath = holder;
+        while (readingPath && readingPath !== everydayPlane) {
+          readingPath.style.setProperty('opacity', '1', 'important');
+          readingPath.style.setProperty('filter', 'none', 'important');
+          readingPath.style.setProperty('overflow', 'visible', 'important');
+          readingPath.style.setProperty('mask-image', 'none', 'important');
+          readingPath.style.setProperty('-webkit-mask-image', 'none', 'important');
+          readingPath.style.setProperty('clip-path', 'none', 'important');
+          readingPath = readingPath.parentElement;
+        }
+
+        const minimum = fontSize;
+        holder.style.setProperty('font-size', `${fontSize}px`, 'important');
+        for (let attempt = 0; attempt < 24; attempt += 1) {
+          if (holder.scrollHeight <= metric.height + 1 && holder.scrollWidth <= metric.width + 1) break;
+          fontSize = Math.max(minimum, fontSize * 0.94);
+          holder.style.setProperty('font-size', `${fontSize}px`, 'important');
+          if (fontSize === minimum) break;
+        }
+      });
+    };
+
+    const buildMirrors = () => {
+      if (mirrorReady) return true;
+      try {
+        const mirrors = createMirrorPair();
+        technicalPlane.replaceChildren(prepareClone(mirrors.technical, false));
+        everydayPlane.replaceChildren(prepareClone(mirrors.everyday, true));
+        lockEverydayGeometry(mirrors.metrics);
+        mirrorReady = true;
+        return true;
+      } catch {
+        root.dataset.motion = 'lite';
+        everydayPlane.textContent =
+          'Everyday wording preview is temporarily unavailable. The technical page remains complete.';
+        technicalPlane.replaceChildren();
+        mirrorReady = true;
+        return false;
+      }
+    };
+
+    const syncMirrors = () => {
+      frameRequest = 0;
+      if (root.dataset.state !== 'open' || !mirrorReady) return;
+      const sourceRect = source.getBoundingClientRect();
+      const fieldRect = field.getBoundingClientRect();
+      const x = sourceRect.left - fieldRect.left;
+      const y = sourceRect.top - fieldRect.top;
+      [technicalPlane, everydayPlane].forEach((plane) => {
+        plane.style.width = `${sourceRect.width}px`;
+        plane.style.height = `${Math.max(source.scrollHeight, sourceRect.height)}px`;
+        plane.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      });
+    };
+
+    const scheduleSync = () => {
+      if (!frameRequest) frameRequest = window.requestAnimationFrame(syncMirrors);
+    };
+
+    const setOpen = (open) => {
+      if (open) {
+        const detailed = buildMirrors();
+        root.dataset.state = 'open';
+        aperture.removeAttribute('inert');
+        aperture.setAttribute('aria-hidden', 'false');
+        trigger.setAttribute('aria-expanded', 'true');
+        scheduleSync();
+        announce(
+          detailed
+            ? 'Lens opened. Everyday wording is visible in the center of the screen.'
+            : 'Lens opened in simple fallback mode. The technical page remains available.'
+        );
+        return;
+      }
+      root.dataset.state = 'closed';
+      aperture.setAttribute('inert', '');
+      aperture.setAttribute('aria-hidden', 'true');
+      trigger.setAttribute('aria-expanded', 'false');
+      announce('Lens closed. Technical wording remains active.');
+    };
+
+    const replaceSourceCopy = (useEveryday) => {
+      if (useEveryday) {
+        semanticNodes = [];
+        const walker = document.createTreeWalker(source, NodeFilter.SHOW_TEXT);
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach((node) => {
+          const raw = node.nodeValue || '';
+          const entry = copyMap.get(normalize(raw));
+          if (!entry) return;
+          semanticNodes.push({ node, original: raw });
+          const leading = raw.match(/^\s+/)?.[0] || '';
+          const trailing = raw.match(/\s*$/)?.[0] || '';
+          node.nodeValue = `${leading}${entry.everyday}${trailing}`;
+        });
+      } else {
+        semanticNodes.forEach(({ node, original }) => {
+          if (node.isConnected) node.nodeValue = original;
+        });
+        semanticNodes = [];
+      }
+    };
+
+    const setSemanticMode = (active) => {
+      if (active === semanticActive) return;
+      setOpen(false);
+      replaceSourceCopy(active);
+      semanticActive = active;
+      mirrorReady = false;
+      technicalPlane.replaceChildren();
+      everydayPlane.replaceChildren();
+      triggerLabel.textContent = active ? 'Tech' : 'Lens';
+      triggerDetail.textContent = active ? 'Return to source' : 'Everyday user view';
+      trigger.setAttribute(
+        'aria-label',
+        active
+          ? 'Return this page to technical wording'
+          : 'Open the Malone Integrated Tech Lens for everyday wording'
+      );
+      root.dataset.semantic = active ? 'everyday' : 'technical';
+      try {
+        sessionStorage.setItem('mit-lens-semantic-preview', active ? 'everyday' : 'technical');
+      } catch {
+        // Session persistence is optional.
+      }
+      announce(
+        active
+          ? 'Everyday user view is active for mapped prototype sections.'
+          : 'Technical source wording is active.'
+      );
+    };
+
+    trigger.addEventListener('click', () => {
+      if (semanticActive) setSemanticMode(false);
+      else setOpen(root.dataset.state !== 'open');
+    });
+    closeButton.addEventListener('click', () => {
+      setOpen(false);
+      trigger.focus();
+    });
+    semanticButton.addEventListener('click', () => {
+      setSemanticMode(true);
+      trigger.focus();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && root.dataset.state === 'open') {
+        setOpen(false);
+        trigger.focus();
+      }
+    });
+    window.addEventListener(
+      'scroll',
+      () => {
+        const currentY = window.scrollY;
+        const delta = currentY - lastScrollY;
+        if (Math.abs(delta) > 1) {
+          const direction = delta > 0 ? 'down' : 'up';
+          root.dataset.direction = direction;
+          if (directionReadout) {
+            directionReadout.textContent = `Scroll direction / ${direction}`;
+          }
+        }
+        if (Math.abs(delta) > 90) {
+          root.dataset.velocity = 'fast';
+          window.clearTimeout(velocityTimer);
+          velocityTimer = window.setTimeout(() => delete root.dataset.velocity, 140);
+        }
+        lastScrollY = currentY;
+        scheduleSync();
+      },
+      { passive: true }
+    );
+    let resizeTimer = 0;
+    window.addEventListener('resize', () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        if (root.dataset.state === 'open') {
+          mirrorReady = false;
+          technicalPlane.replaceChildren();
+          everydayPlane.replaceChildren();
+          buildMirrors();
+        }
+        scheduleSync();
+      }, 120);
+    }, { passive: true });
+    reducedMotion.addEventListener?.('change', (event) => {
+      root.dataset.motion = event.matches ? 'reduced' : lowPower ? 'lite' : 'full';
+    });
+    try {
+      if (sessionStorage.getItem('mit-lens-semantic-preview') === 'everyday') {
+        setSemanticMode(true);
+      }
+    } catch {
+      // Storage is not required.
+    }
+  })();
+</script>
+
+<style is:global>
+  .mit-lens {
+    --lens-blue: #2f93ff;
+    --lens-line: rgba(129, 177, 229, 0.34);
+  }
+
+  .mit-lens__trigger {
+    position: fixed;
+    z-index: 190;
+    right: 0;
+    top: 50dvh;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    width: 168px;
+    min-height: 58px;
+    padding: 0.55rem 0.85rem 0.55rem 0.7rem;
+    color: #f5f8fc;
+    background:
+      linear-gradient(115deg, rgba(47, 147, 255, 0.15), transparent 38%),
+      linear-gradient(180deg, rgba(22, 30, 39, 0.98), rgba(6, 10, 15, 0.98));
+    border: 1px solid rgba(116, 157, 203, 0.44);
+    border-right: 0;
+    border-radius: 10px 0 0 10px;
+    box-shadow: -12px 0 34px rgba(0, 0, 0, 0.42);
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: transform 220ms ease, opacity 180ms ease, border-color 180ms ease;
+  }
+
+  .mit-lens__trigger:hover,
+  .mit-lens__trigger:focus-visible {
+    border-color: var(--lens-blue);
+    outline: 2px solid rgba(47, 147, 255, 0.46);
+    outline-offset: 2px;
+  }
+
+  .mit-lens__icon {
+    display: grid;
+    flex: 0 0 auto;
+    width: 35px;
+    height: 35px;
+    place-items: center;
+    color: var(--lens-blue);
+    border: 1px solid rgba(92, 153, 221, 0.36);
+    background: rgba(3, 8, 14, 0.76);
+  }
+
+  .mit-lens__icon svg {
+    width: 25px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+  }
+
+  .mit-lens__trigger-copy {
+    display: grid;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .mit-lens__trigger-copy strong {
+    font-family: var(--font-display, inherit);
+    font-size: 0.78rem;
+    letter-spacing: 0.19em;
+    line-height: 1.1;
+  }
+
+  .mit-lens__trigger-copy small {
+    margin-top: 0.24rem;
+    color: #9aa9ba;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.56rem;
+    letter-spacing: 0.09em;
+    line-height: 1.3;
+  }
+
+  .mit-lens[data-state='open'] .mit-lens__trigger {
+    opacity: 0.42;
+    transform: translate(calc(100% - 47px), -50%);
+  }
+
+  .mit-lens[data-state='open'] .mit-lens__trigger:hover,
+  .mit-lens[data-state='open'] .mit-lens__trigger:focus-visible {
+    opacity: 1;
+  }
+
+  .mit-lens[data-state='open'] .mit-lens__trigger {
+    opacity: 0 !important;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .mit-lens__aperture {
+    position: fixed;
+    z-index: 180;
+    top: 1dvh;
+    left: 50%;
+    width: min(calc(100vw - 64px), 1520px);
+    height: min(98dvh, 1080px);
+    min-height: 560px;
+    color: #edf4fc;
+    background:
+      linear-gradient(90deg, rgba(47, 147, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(rgba(47, 147, 255, 0.035) 1px, transparent 1px),
+      rgba(5, 9, 14, 0.95);
+    background-size: 42px 42px;
+    border: 1px solid var(--lens-line);
+    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.64), inset 0 0 54px rgba(16, 65, 118, 0.14);
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transform: translate(-50%, 14px) scale(0.972);
+    visibility: hidden;
+    transition: opacity 220ms ease, transform 430ms cubic-bezier(0.16, 0.8, 0.24, 1),
+      visibility 0s linear 430ms;
+  }
+
+  .mit-lens[data-state='open'] .mit-lens__aperture {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  .mit-lens__aperture::before {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, transparent 52%, rgba(0, 0, 0, 0.38));
+    pointer-events: none;
+  }
+
+  .mit-lens__corner {
+    position: absolute;
+    z-index: 12;
+    width: 30px;
+    height: 30px;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(1.7);
+    transition: opacity 160ms ease 90ms, transform 360ms ease 90ms;
+  }
+
+  .mit-lens__corner::before,
+  .mit-lens__corner::after {
+    content: '';
+    position: absolute;
+    background: linear-gradient(90deg, #d8e0e8, #688199 68%, var(--lens-blue));
+    box-shadow: 0 0 12px rgba(47, 147, 255, 0.3);
+  }
+
+  .mit-lens__corner::before { width: 30px; height: 2px; }
+  .mit-lens__corner::after { width: 2px; height: 30px; }
+  .mit-lens__corner--tl { top: 10px; left: 10px; }
+  .mit-lens__corner--tr { top: 10px; right: 10px; transform: scale(1.7) rotate(90deg); }
+  .mit-lens__corner--bl { bottom: 10px; left: 10px; transform: scale(1.7) rotate(-90deg); }
+  .mit-lens__corner--br { right: 10px; bottom: 10px; transform: scale(1.7) rotate(180deg); }
+  .mit-lens[data-state='open'] .mit-lens__corner { opacity: 0.92; transform: scale(1); }
+  .mit-lens[data-state='open'] .mit-lens__corner--tr { transform: scale(1) rotate(90deg); }
+  .mit-lens[data-state='open'] .mit-lens__corner--bl { transform: scale(1) rotate(-90deg); }
+  .mit-lens[data-state='open'] .mit-lens__corner--br { transform: scale(1) rotate(180deg); }
+
+  .mit-lens__header {
+    position: absolute;
+    z-index: 20;
+    top: 0;
+    right: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 72px;
+    padding: 0.72rem 1.25rem;
+    background: linear-gradient(90deg, rgba(8, 14, 22, 0.99), rgba(10, 20, 31, 0.95));
+    border-bottom: 1px solid rgba(70, 135, 208, 0.32);
+    pointer-events: auto;
+  }
+
+  .mit-lens__identity { display: grid; min-width: 0; }
+  .mit-lens__identity span,
+  .mit-lens__identity small,
+  .mit-lens__footer,
+  .mit-lens__band span,
+  .mit-lens__stable span {
+    font-family: var(--font-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+  }
+
+  .mit-lens__identity span { color: #8f9eae; font-size: 0.5rem; }
+  .mit-lens__identity strong {
+    margin-top: 0.16rem;
+    font-family: var(--font-display, inherit);
+    font-size: 0.88rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .mit-lens__identity small { margin-top: 0.2rem; color: #8fa3b8; font-size: 0.48rem; }
+  .mit-lens__controls { display: flex; flex: 0 0 auto; gap: 0.45rem; }
+
+  .mit-lens__controls button {
+    min-height: 40px;
+    padding: 0.4rem 0.65rem;
+    color: #b9c7d5;
+    background: rgba(5, 10, 16, 0.86);
+    border: 1px solid rgba(112, 151, 193, 0.38);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.52rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .mit-lens__controls button:first-child { color: #dcecff; border-color: rgba(47, 147, 255, 0.62); }
+  .mit-lens__controls button:hover,
+  .mit-lens__controls button:focus-visible {
+    color: #fff;
+    border-color: var(--lens-blue);
+    outline: 2px solid rgba(47, 147, 255, 0.46);
+    outline-offset: 2px;
+  }
+
+  .mit-lens__field {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    overflow: hidden;
+    touch-action: pan-y;
+    background: #02080e;
+  }
+
+  .mit-lens__plane {
+    position: absolute;
+    top: 0;
+    left: 0;
+    min-width: 100vw;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .mit-lens__plane--technical {
+    z-index: 1;
+    opacity: 0;
+    filter: saturate(0.72) contrast(1.05) blur(0.35px);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0 7%, transparent 19% 81%, #000 93% 100%);
+    mask-image: linear-gradient(to bottom, #000 0 7%, transparent 19% 81%, #000 93% 100%);
+  }
+
+  .mit-lens__plane--everyday {
+    z-index: 2;
+    opacity: 1;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .mit-lens__mirror {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .mit-lens__mirror * { pointer-events: none !important; }
+  .mit-lens__mapped {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    opacity: 1 !important;
+    text-shadow:
+      0 0 18px rgba(47, 147, 255, 0.38),
+      0 1px 0 rgba(255, 255, 255, 0.48);
+    text-rendering: optimizeLegibility;
+  }
+
+  .mit-lens[data-motion='full'][data-state='open'] .mit-lens__mapped {
+    animation: mit-lens-lock 280ms cubic-bezier(0.16, 0.8, 0.24, 1) both;
+  }
+
+  .mit-lens__band {
+    position: absolute;
+    z-index: 1;
+    right: 0;
+    left: 0;
+    height: 10%;
+    pointer-events: none;
+  }
+
+  .mit-lens__band::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    left: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 4%, var(--lens-blue), transparent 96%);
+    box-shadow: 0 0 13px rgba(47, 147, 255, 0.58);
+    opacity: 0.46;
+  }
+
+  .mit-lens__band span,
+  .mit-lens__stable span {
+    position: absolute;
+    right: 1rem;
+    color: rgba(111, 174, 241, 0.52);
+    font-size: 0.4rem;
+  }
+
+  .mit-lens__band--top { top: 0; background: linear-gradient(180deg, rgba(14, 38, 66, 0.26), transparent); }
+  .mit-lens__band--top::after { bottom: 0; }
+  .mit-lens__band--top span { bottom: 7px; }
+  .mit-lens__band--bottom { bottom: 0; background: linear-gradient(0deg, rgba(14, 38, 66, 0.26), transparent); }
+  .mit-lens__band--bottom::after { top: 0; }
+  .mit-lens__band--bottom span { top: 7px; }
+  .mit-lens[data-direction='down'] .mit-lens__band--bottom::after,
+  .mit-lens[data-direction='up'] .mit-lens__band--top::after { opacity: 0.95; }
+
+  .mit-lens__stable {
+    position: absolute;
+    z-index: 1;
+    top: 10%;
+    right: 0;
+    bottom: 10%;
+    left: 0;
+    border-block: 1px solid rgba(95, 151, 211, 0.08);
+    pointer-events: none;
+  }
+
+  .mit-lens__stable span { right: 1rem; bottom: 0.45rem; color: rgba(136, 169, 204, 0.3); }
+  .mit-lens__scan {
+    position: absolute;
+    z-index: 7;
+    top: 74px;
+    bottom: 30px;
+    left: 18%;
+    width: 1px;
+    background: linear-gradient(transparent, var(--lens-blue), transparent);
+    box-shadow: 0 0 18px rgba(47, 147, 255, 0.4);
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  .mit-lens[data-motion='full'][data-state='open'] .mit-lens__scan {
+    animation: mit-lens-scan 3.6s ease-in-out infinite;
+  }
+
+  .mit-lens[data-velocity='fast'] .mit-lens__mapped { animation: none !important; filter: none; }
+  .mit-lens__footer {
+    display: none;
+    position: absolute;
+    z-index: 20;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 30px;
+    padding: 0 1.25rem;
+    color: #78899a;
+    background: rgba(4, 8, 13, 0.96);
+    border-top: 1px solid rgba(70, 135, 208, 0.25);
+    font-size: 0.42rem;
+    pointer-events: none;
+  }
+
+  .mit-lens__footer i {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    margin-right: 0.35rem;
+    background: var(--lens-blue);
+    border-radius: 50%;
+    box-shadow: 0 0 9px rgba(47, 147, 255, 0.8);
+  }
+
+  .mit-lens__live {
+    position: fixed;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  @keyframes mit-lens-lock {
+    from { opacity: 0.42; filter: blur(3px); letter-spacing: 0.045em; transform: translateX(4px); }
+    to { opacity: 1; filter: blur(0); letter-spacing: inherit; transform: translateX(0); }
+  }
+
+  @keyframes mit-lens-scan {
+    0%, 100% { left: 16%; opacity: 0.16; }
+    50% { left: 84%; opacity: 0.42; }
+  }
+
+  @media (max-width: 700px) {
+    .mit-lens__trigger {
+      top: 62dvh;
+      flex-direction: column;
+      gap: 0.45rem;
+      width: 62px;
+      min-height: 112px;
+      padding: 0.65rem 0.4rem;
+    }
+    .mit-lens__trigger-copy { text-align: center; }
+    .mit-lens__trigger-copy small { max-width: 48px; font-size: 0.46rem; }
+    .mit-lens__aperture {
+      top: 1dvh;
+      right: 9px;
+      left: 9px;
+      width: auto;
+      height: 98dvh;
+      min-height: 0;
+      transform: translateY(12px) scale(0.972);
+    }
+    .mit-lens[data-state='open'] .mit-lens__aperture { transform: translateY(0) scale(1); }
+    .mit-lens__header { min-height: 66px; gap: 0.5rem; padding: 0.55rem 0.65rem; }
+    .mit-lens__identity small { display: none; }
+    .mit-lens__identity strong { font-size: 0.68rem; letter-spacing: 0.08em; }
+    .mit-lens__identity span { font-size: 0.42rem; }
+    .mit-lens__controls { gap: 0.3rem; }
+    .mit-lens__controls button { min-height: 44px; padding: 0.36rem 0.42rem; font-size: 0.43rem; }
+    .mit-lens__scan { top: 67px; }
+    .mit-lens__footer { padding: 0 0.65rem; font-size: 0.36rem; }
+  }
+
+  @media (max-width: 390px) {
+    .mit-lens__controls button:first-child { width: 62px; }
+    .mit-lens__footer span:last-child { display: none; }
+  }
+
+  @media (max-height: 620px) {
+    .mit-lens__aperture { top: 20dvh; height: 60dvh; min-height: 0; }
+    .mit-lens__identity small, .mit-lens__stable span { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mit-lens__trigger,
+    .mit-lens__aperture,
+    .mit-lens__corner,
+    .mit-lens__mapped {
+      animation: none !important;
+      transition-duration: 80ms !important;
+    }
+    .mit-lens__scan { display: none; }
+  }
+
+  .mit-lens[data-motion='reduced'] .mit-lens__scan,
+  .mit-lens[data-motion='lite'] .mit-lens__scan { display: none; }
+
+  @media (forced-colors: active) {
+    .mit-lens__trigger,
+    .mit-lens__aperture,
+    .mit-lens__controls button {
+      color: CanvasText;
+      background: Canvas;
+      border: 2px solid CanvasText;
+    }
+    .mit-lens__mapped { color: CanvasText; text-shadow: none; }
+  }
+</style>

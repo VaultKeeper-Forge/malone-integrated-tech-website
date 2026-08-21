@@ -1,6 +1,7 @@
 ﻿---
 import '../styles/global.css';
 import { withBase } from '../lib/paths';
+import MaloneLens from '../components/ui/MaloneLens.astro';
 
 interface Props {
   title: string;
@@ -213,6 +214,7 @@ const structuredData = JSON.stringify({
     <div class="site-shell">
       <slot />
     </div>
+    {normalizedPath === '/' && <MaloneLens />}
   </body>
 </html>
 
