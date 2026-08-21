@@ -54,9 +54,15 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
       <div class="mit-lens__plane mit-lens__plane--technical" data-lens-technical></div>
       <div class="mit-lens__plane mit-lens__plane--everyday" data-lens-everyday></div>
       <div class="mit-lens__band mit-lens__band--top"><span>Recompose</span></div>
+      <div class="mit-lens__stable"><span>Same meaning / everyday user view</span></div>
+      <div class="mit-lens__band mit-lens__band--bottom"><span>Recompose</span></div>
       <div class="mit-lens__scan"></div>
     </div>
 
+    <footer class="mit-lens__footer">
+      <span><i></i> Source preserved</span>
+      <span data-lens-direction>Scroll direction / down</span>
+    </footer>
   </section>
 
   <p class="mit-lens__live" aria-live="polite" aria-atomic="true" data-lens-live></p>
@@ -219,7 +225,7 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
         holder.style.setProperty('min-height', `${metric.height}px`, 'important');
         holder.style.setProperty('overflow', 'visible', 'important');
         holder.style.setProperty('position', 'relative', 'important');
-        holder.style.setProperty('z-index', '30', 'important');
+        holder.style.setProperty('z-index', '3', 'important');
 
         let fontSize = metric.fontSize < 12
           ? 12
@@ -237,9 +243,6 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
           readingPath.style.setProperty('opacity', '1', 'important');
           readingPath.style.setProperty('filter', 'none', 'important');
           readingPath.style.setProperty('overflow', 'visible', 'important');
-          readingPath.style.setProperty('mask-image', 'none', 'important');
-          readingPath.style.setProperty('-webkit-mask-image', 'none', 'important');
-          readingPath.style.setProperty('clip-path', 'none', 'important');
           readingPath = readingPath.parentElement;
         }
 
@@ -527,11 +530,11 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
   .mit-lens__aperture {
     position: fixed;
     z-index: 180;
-    top: 1dvh;
+    top: 25dvh;
     left: 50%;
     width: min(calc(100vw - 64px), 1520px);
-    height: min(98dvh, 1080px);
-    min-height: 560px;
+    height: 50dvh;
+    min-height: 360px;
     color: #edf4fc;
     background:
       linear-gradient(90deg, rgba(47, 147, 255, 0.045) 1px, transparent 1px),
@@ -559,7 +562,7 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
   .mit-lens__aperture::before {
     content: '';
     position: absolute;
-    z-index: 1;
+    z-index: 8;
     inset: 0;
     background: radial-gradient(circle at 50% 50%, transparent 52%, rgba(0, 0, 0, 0.38));
     pointer-events: none;
@@ -713,7 +716,7 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
 
   .mit-lens__band {
     position: absolute;
-    z-index: 1;
+    z-index: 6;
     right: 0;
     left: 0;
     height: 10%;
@@ -750,7 +753,7 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
 
   .mit-lens__stable {
     position: absolute;
-    z-index: 1;
+    z-index: 5;
     top: 10%;
     right: 0;
     bottom: 10%;
@@ -779,7 +782,6 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
 
   .mit-lens[data-velocity='fast'] .mit-lens__mapped { animation: none !important; filter: none; }
   .mit-lens__footer {
-    display: none;
     position: absolute;
     z-index: 20;
     right: 0;
@@ -839,11 +841,11 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
     .mit-lens__trigger-copy { text-align: center; }
     .mit-lens__trigger-copy small { max-width: 48px; font-size: 0.46rem; }
     .mit-lens__aperture {
-      top: 1dvh;
+      top: 25dvh;
       right: 9px;
       left: 9px;
       width: auto;
-      height: 98dvh;
+      height: 50dvh;
       min-height: 0;
       transform: translateY(12px) scale(0.972);
     }
