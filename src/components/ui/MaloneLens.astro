@@ -45,7 +45,7 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
         <small>Scroll normally. The Lens translates what passes through.</small>
       </div>
       <div class="mit-lens__controls">
-        <span class="mit-lens__mode">Everyday User View</span>
+        <button type="button" data-lens-semantic>Everyday User View</button>
         <button type="button" data-lens-close>Close</button>
       </div>
     </header>
@@ -80,7 +80,10 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
     const field = root.querySelector('[data-lens-field]');
     const technicalPlane = root.querySelector('[data-lens-technical]');
     const everydayPlane = root.querySelector('[data-lens-everyday]');
+    const semanticButton = root.querySelector('[data-lens-semantic]');
     const closeButton = root.querySelector('[data-lens-close]');
+    const triggerLabel = trigger?.querySelector('[data-lens-trigger-label]');
+    const triggerDetail = trigger?.querySelector('[data-lens-trigger-detail]');
     const live = root.querySelector('[data-lens-live]');
     const directionReadout = root.querySelector('[data-lens-direction]');
     const copyNode = root.querySelector('[data-lens-copy]');
@@ -92,6 +95,7 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
       !field ||
       !technicalPlane ||
       !everydayPlane ||
+      !semanticButton ||
       !closeButton ||
       !live ||
       !copyNode ||
@@ -321,17 +325,115 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
       announce('Lens closed. Technical wording remains active.');
     };
 
+    let semanticActive = false;
+    let semanticNodes = [];
+
+    const replaceSourceCopy = (useEveryday) => {
+      if (useEveryday) {
+        semanticNodes = [];
+        const walker = document.createTreeWalker(source, NodeFilter.SHOW_TEXT);
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+
+        nodes.forEach((node) => {
+          const raw = node.nodeValue || '';
+          const entry = copyMap.get(normalize(raw));
+          if (!entry) return;
+          semanticNodes.push({ node, original: raw });
+          const leading = raw.match(/^\s+/)?.[0] || '';
+          const trailing = raw.match(/\s*$/)?.[0] || '';
+          node.nodeValue = `${leading}${entry.everyday}${trailing}`;
+        });
+        return;
+      }
+
+      semanticNodes.forEach(({ node, original }) => {
+        if (node.isConnected) node.nodeValue = original;
+      });
+      semanticNodes = [];
+    };
+
+    const setSemanticMode = (active) => {
+      if (active === semanticActive) return;
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+      const rootOverflowAnchor = document.documentElement.style.overflowAnchor;
+      const sourceOverflowAnchor = source.style.overflowAnchor;
+
+      document.documentElement.style.overflowAnchor = 'none';
+      source.style.overflowAnchor = 'none';
+
+      setOpen(false);
+      replaceSourceCopy(active);
+      semanticActive = active;
+      mirrorReady = false;
+      technicalPlane.replaceChildren();
+      everydayPlane.replaceChildren();
+      if (triggerLabel) triggerLabel.textContent = active ? 'Tech' : 'Lens';
+      if (triggerDetail) {
+        triggerDetail.textContent = active ? 'Return to source' : 'Everyday user view';
+      }
+      trigger.setAttribute(
+        'aria-label',
+        active
+          ? 'Return this page to technical wording'
+          : 'Open the Malone Integrated Tech Lens for everyday wording'
+      );
+      root.dataset.semantic = active ? 'everyday' : 'technical';
+
+      try {
+        sessionStorage.setItem('mit-lens-semantic-preview', active ? 'everyday' : 'technical');
+      } catch {
+        // Session persistence is optional.
+      }
+
+      const restoreScroll = () => {
+        window.scrollTo({ left: scrollX, top: scrollY, behavior: 'instant' });
+      };
+      restoreScroll();
+      requestAnimationFrame(() => {
+        restoreScroll();
+        requestAnimationFrame(() => {
+          restoreScroll();
+          window.setTimeout(() => {
+            restoreScroll();
+            document.documentElement.style.overflowAnchor = rootOverflowAnchor;
+            source.style.overflowAnchor = sourceOverflowAnchor;
+          }, 120);
+        });
+      });
+      announce(
+        active
+          ? 'Everyday user view is active across the page.'
+          : 'Technical source wording is active.'
+      );
+    };
+
     trigger.addEventListener('click', () => {
-      setOpen(root.dataset.state !== 'open');
+      if (semanticActive) setSemanticMode(false);
+      else setOpen(root.dataset.state !== 'open');
     });
+    semanticButton.addEventListener('click', () => {
+      setSemanticMode(true);
+      trigger.focus({ preventScroll: true });
+    });
+
+    try {
+      if (sessionStorage.getItem('mit-lens-semantic-preview') === 'everyday') {
+        setSemanticMode(true);
+      }
+    } catch {
+      // Storage is not required.
+    }
+
     closeButton.addEventListener('click', () => {
       setOpen(false);
-      trigger.focus();
+      trigger.focus({ preventScroll: true });
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && root.dataset.state === 'open') {
         setOpen(false);
-        trigger.focus();
+        trigger.focus({ preventScroll: true });
       }
     });
     window.addEventListener(
@@ -836,7 +938,7 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
     .mit-lens__mapped { color: CanvasText; text-shadow: none; }
   }
 
-  .mit-lens__mode {
+  [data-lens-semantic] {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
@@ -875,12 +977,56 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
   }
 
   @media (max-width: 700px) {
-    .mit-lens__mode {
+    [data-lens-semantic] {
       max-width: 86px;
       padding: 0.36rem 0.42rem;
       font-size: 0.43rem;
       line-height: 1.35;
       text-align: center;
+    }
+  }
+
+  /* Separate the translated content from the lower status readout. */
+  .mit-lens__aperture {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) 30px;
+  }
+
+  .mit-lens__header {
+    position: relative;
+    inset: auto;
+    grid-row: 1;
+  }
+
+  .mit-lens__field {
+    position: relative;
+    inset: auto;
+    grid-row: 2;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .mit-lens__footer {
+    position: relative;
+    inset: auto;
+    grid-row: 3;
+  }
+
+  .mit-lens__scan {
+    top: 0;
+    bottom: 0;
+  }
+
+  .mit-lens__corner--bl,
+  .mit-lens__corner--br {
+    bottom: 40px;
+  }
+
+  @media (max-width: 390px) {
+    .mit-lens__controls button:first-child {
+      width: auto;
+      max-width: 86px;
     }
   }
 </style>
