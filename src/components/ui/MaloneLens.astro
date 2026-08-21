@@ -41,11 +41,11 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
     <header class="mit-lens__header">
       <div class="mit-lens__identity">
         <span>Malone Integrated Tech Lens</span>
-        <strong>Everyday user view active</strong>
+        <strong>Everyday User View Active</strong>
         <small>Scroll normally. The Lens translates what passes through.</small>
       </div>
       <div class="mit-lens__controls">
-        <button type="button" data-lens-semantic>Everyday user view</button>
+        <span class="mit-lens__mode">Everyday User View</span>
         <button type="button" data-lens-close>Close</button>
       </div>
     </header>
@@ -81,11 +81,8 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
     const technicalPlane = root.querySelector('[data-lens-technical]');
     const everydayPlane = root.querySelector('[data-lens-everyday]');
     const closeButton = root.querySelector('[data-lens-close]');
-    const semanticButton = root.querySelector('[data-lens-semantic]');
     const live = root.querySelector('[data-lens-live]');
     const directionReadout = root.querySelector('[data-lens-direction]');
-    const triggerLabel = root.querySelector('[data-lens-trigger-label]');
-    const triggerDetail = root.querySelector('[data-lens-trigger-detail]');
     const copyNode = root.querySelector('[data-lens-copy]');
     const source = document.querySelector('.site-shell');
 
@@ -96,7 +93,6 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
       !technicalPlane ||
       !everydayPlane ||
       !closeButton ||
-      !semanticButton ||
       !live ||
       !copyNode ||
       !source
@@ -124,8 +120,6 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
     root.dataset.motion = reducedMotion.matches ? 'reduced' : lowPower ? 'lite' : 'full';
 
     let mirrorReady = false;
-    let semanticActive = false;
-    let semanticNodes = [];
     let frameRequest = 0;
     let lastScrollY = window.scrollY;
     let velocityTimer = 0;
@@ -217,6 +211,17 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
       holders.forEach((holder, key) => {
         const metric = metrics.get(key);
         if (!metric || metric.width <= 0 || metric.height <= 0) return;
+        if (holder.parentElement?.classList.contains('practice-panel__tags')) {
+          holder.style.setProperty('display', 'inline-flex', 'important');
+          holder.style.setProperty('width', 'auto', 'important');
+          holder.style.setProperty('min-width', 'max-content', 'important');
+          holder.style.setProperty('max-width', '100%', 'important');
+          holder.style.setProperty('height', 'auto', 'important');
+          holder.style.setProperty('min-height', '0', 'important');
+          holder.style.setProperty('overflow', 'visible', 'important');
+          holder.style.setProperty('white-space', 'nowrap', 'important');
+          return;
+        }
         holder.style.setProperty('box-sizing', 'border-box', 'important');
         holder.style.setProperty('width', `${metric.width}px`, 'important');
         holder.style.setProperty('min-width', `${metric.width}px`, 'important');
@@ -316,68 +321,11 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
       announce('Lens closed. Technical wording remains active.');
     };
 
-    const replaceSourceCopy = (useEveryday) => {
-      if (useEveryday) {
-        semanticNodes = [];
-        const walker = document.createTreeWalker(source, NodeFilter.SHOW_TEXT);
-        const nodes = [];
-        while (walker.nextNode()) nodes.push(walker.currentNode);
-        nodes.forEach((node) => {
-          const raw = node.nodeValue || '';
-          const entry = copyMap.get(normalize(raw));
-          if (!entry) return;
-          semanticNodes.push({ node, original: raw });
-          const leading = raw.match(/^\s+/)?.[0] || '';
-          const trailing = raw.match(/\s*$/)?.[0] || '';
-          node.nodeValue = `${leading}${entry.everyday}${trailing}`;
-        });
-      } else {
-        semanticNodes.forEach(({ node, original }) => {
-          if (node.isConnected) node.nodeValue = original;
-        });
-        semanticNodes = [];
-      }
-    };
-
-    const setSemanticMode = (active) => {
-      if (active === semanticActive) return;
-      setOpen(false);
-      replaceSourceCopy(active);
-      semanticActive = active;
-      mirrorReady = false;
-      technicalPlane.replaceChildren();
-      everydayPlane.replaceChildren();
-      triggerLabel.textContent = active ? 'Tech' : 'Lens';
-      triggerDetail.textContent = active ? 'Return to source' : 'Everyday user view';
-      trigger.setAttribute(
-        'aria-label',
-        active
-          ? 'Return this page to technical wording'
-          : 'Open the Malone Integrated Tech Lens for everyday wording'
-      );
-      root.dataset.semantic = active ? 'everyday' : 'technical';
-      try {
-        sessionStorage.setItem('mit-lens-semantic-preview', active ? 'everyday' : 'technical');
-      } catch {
-        // Session persistence is optional.
-      }
-      announce(
-        active
-          ? 'Everyday user view is active for mapped prototype sections.'
-          : 'Technical source wording is active.'
-      );
-    };
-
     trigger.addEventListener('click', () => {
-      if (semanticActive) setSemanticMode(false);
-      else setOpen(root.dataset.state !== 'open');
+      setOpen(root.dataset.state !== 'open');
     });
     closeButton.addEventListener('click', () => {
       setOpen(false);
-      trigger.focus();
-    });
-    semanticButton.addEventListener('click', () => {
-      setSemanticMode(true);
       trigger.focus();
     });
     document.addEventListener('keydown', (event) => {
@@ -424,13 +372,6 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
     reducedMotion.addEventListener?.('change', (event) => {
       root.dataset.motion = event.matches ? 'reduced' : lowPower ? 'lite' : 'full';
     });
-    try {
-      if (sessionStorage.getItem('mit-lens-semantic-preview') === 'everyday') {
-        setSemanticMode(true);
-      }
-    } catch {
-      // Storage is not required.
-    }
   })();
 </script>
 
@@ -893,5 +834,53 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
       border: 2px solid CanvasText;
     }
     .mit-lens__mapped { color: CanvasText; text-shadow: none; }
+  }
+
+  .mit-lens__mode {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.42rem 0.66rem;
+    color: #dcecff;
+    border: 1px solid rgba(47, 147, 255, 0.62);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.48rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .mit-lens__plane--everyday .practice-panel__tags {
+    align-items: flex-start !important;
+    flex-wrap: wrap !important;
+    gap: 0.45rem !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .mit-lens__plane--everyday .practice-panel__tags > span {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    align-items: center;
+    width: auto !important;
+    min-width: max-content !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  .mit-lens__plane--everyday .practice-panel__tags .mit-lens__mapped {
+    display: block;
+    white-space: nowrap !important;
+  }
+
+  @media (max-width: 700px) {
+    .mit-lens__mode {
+      max-width: 86px;
+      padding: 0.36rem 0.42rem;
+      font-size: 0.43rem;
+      line-height: 1.35;
+      text-align: center;
+    }
   }
 </style>
