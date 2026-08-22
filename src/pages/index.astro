@@ -6,10 +6,8 @@ import SectionHeading from '../components/sections/SectionHeading.astro';
 import HeroBanner from '../components/sections/HeroBanner.astro';
 import CapabilityGrid from '../components/sections/CapabilityGrid.astro';
 import ProcessSection from '../components/sections/ProcessSection.astro';
-import ProofSection from '../components/sections/ProofSection.astro';
-import ActiveClientFeature from '../components/ui/ActiveClientFeature.astro';
 import ContactCTA from '../components/sections/ContactCTA.astro';
-import { activeClients, siteCopy } from '../data/siteData';
+import { siteCopy } from '../data/siteData';
 ---
 
 <BaseLayout
@@ -72,17 +70,6 @@ import { activeClients, siteCopy } from '../data/siteData';
           </article>
         ))}
       </div>
-    </section>
-
-    <section id="proof" class="section-shell ultra-section" data-section="proof">
-      <SectionHeading
-        number="04"
-        title="Current Work"
-        heading="Systems in practice"
-        description="Active client work first, followed by representative systems and integration patterns shown honestly at their current stage."
-      />
-      <ActiveClientFeature client={activeClients[0]} />
-      <ProofSection items={siteCopy.proof} />
     </section>
 
     <section id="contact" class="section-shell ultra-section ultra-section--contact" data-section="contact">
