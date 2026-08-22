@@ -3,7 +3,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import TopNav from '../../components/layout/TopNav.astro';
 import Footer from '../../components/layout/Footer.astro';
 import SectionHeading from '../../components/sections/SectionHeading.astro';
-import { siteCopy } from '../../data/siteData';
+import ActiveClientFeature from '../../components/ui/ActiveClientFeature.astro';
+import { activeClients, siteCopy } from '../../data/siteData';
 import { track } from '../../lib/analytics';
 
 track({ action: 'view_projects_page' });
@@ -19,9 +20,10 @@ track({ action: 'view_projects_page' });
     <SectionHeading
       level={1}
       title="Projects & Proof"
-      heading="Representative proof with explicit status"
-      description="Research prototypes and production-ready examples are separated by stage. Status markers are visible by default across every entry."
+      heading="Active client work and systems in practice"
+      description="Live client work appears first. Internal patterns and prototypes remain clearly labeled by stage."
     />
+    <ActiveClientFeature client={activeClients[0]} />
     <div class="content-card-grid content-card-grid--two">
       {siteCopy.proof.map((project) => (
         <article class="card-panel reveal">

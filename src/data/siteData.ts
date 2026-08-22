@@ -47,6 +47,24 @@ export interface SiteCopy {
   services: ServiceTile[];
 }
 
+export interface ActiveClient {
+  status: string;
+  name: string;
+  location: string;
+  summary: string;
+  currentNote: string;
+  liveSurfaceNote: string;
+  cta: string;
+  url: string;
+  tags: string[];
+  image: {
+    src: string;
+    alt: string;
+    width: number;
+    height: number;
+  };
+}
+
 export const siteCopy: SiteCopy = {
   brand: 'Malone Integrated Tech',
   domain: 'maloneintegratedtech.com',
@@ -167,4 +185,27 @@ export const siteCopy: SiteCopy = {
     }
   ]
 };
+
+export const activeClients: ActiveClient[] = [
+  {
+    status: 'ACTIVE CLIENT / LIVE WIP',
+    name: 'Red Barons Bit of Everything',
+    location: 'Pine Grove, California',
+    summary:
+      'Building a new online home for a Pine Grove shop whose in-person experience feels like a museum.',
+    currentNote:
+      'The branded work-in-progress landing page is live now while the full online showroom continues to take shape.',
+    liveSurfaceNote:
+      'Live now: contact, directions, store information, and the in-store Google tour.',
+    cta: 'View live work in progress',
+    url: 'https://www.redbaronsbitofeverything.com/',
+    tags: ['client website', 'small business', 'online showroom'],
+    image: {
+      src: '/clients/red-barons/red-barons-wip-home.webp',
+      alt: 'Red Barons Bit of Everything work-in-progress homepage showing the shop logo and Coming Soon message.',
+      width: 1440,
+      height: 900
+    }
+  }
+];
 

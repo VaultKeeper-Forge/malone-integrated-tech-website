@@ -595,6 +595,55 @@ export const lensPrototypeCopy: LensCopyEntry[] = [
   }
 ];
 
+lensPrototypeCopy.push(
+  {
+    key: 'home-active-client-status', region: 'proof', technical: 'ACTIVE CLIENT / LIVE WIP',
+    everyday: 'A client project currently being built'
+  },
+  {
+    key: 'home-active-client-summary', region: 'proof',
+    technical: 'Building a new online home for a Pine Grove shop whose in-person experience feels like a museum.',
+    everyday: 'We are helping this local shop turn its one-of-a-kind in-store experience into a website people can understand and use.'
+  },
+  {
+    key: 'home-active-client-note', region: 'proof',
+    technical: 'The branded work-in-progress landing page is live now while the full online showroom continues to take shape.',
+    everyday: 'A simple first page is live now. The full online store is still being built.'
+  },
+  {
+    key: 'home-active-client-live-surface', region: 'proof',
+    technical: 'Live now: contact, directions, store information, and the in-store Google tour.',
+    everyday: 'People can already call, get directions, check the shop information, and look around the store online.'
+  },
+  {
+    key: 'home-active-client-cta', region: 'proof', technical: 'View live work in progress',
+    everyday: 'See the site being built'
+  },
+  {
+    key: 'projects-active-client-status', region: 'proof', technical: 'ACTIVE CLIENT / LIVE WIP',
+    everyday: 'A client project currently being built'
+  },
+  {
+    key: 'projects-active-client-summary', region: 'proof',
+    technical: 'Building a new online home for a Pine Grove shop whose in-person experience feels like a museum.',
+    everyday: 'We are helping this local shop turn its one-of-a-kind in-store experience into a website people can understand and use.'
+  },
+  {
+    key: 'projects-active-client-note', region: 'proof',
+    technical: 'The branded work-in-progress landing page is live now while the full online showroom continues to take shape.',
+    everyday: 'A simple first page is live now. The full online store is still being built.'
+  },
+  {
+    key: 'projects-active-client-live-surface', region: 'proof',
+    technical: 'Live now: contact, directions, store information, and the in-store Google tour.',
+    everyday: 'People can already call, get directions, check the shop information, and look around the store online.'
+  },
+  {
+    key: 'projects-active-client-cta', region: 'proof', technical: 'View live work in progress',
+    everyday: 'See the site being built'
+  }
+);
+
 export const lensRouteCoverage = {
   '/': {
     prototype: ['hero', 'capabilities', 'How It Works', 'research', 'current work', 'contact CTA'],

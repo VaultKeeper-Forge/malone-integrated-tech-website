@@ -83,6 +83,15 @@ test.describe('Malone consumer surface', () => {
       expect(graph.some((entry) => entry['@type'] === 'WebSite')).toBeTruthy();
       expect(graph.some((entry) => entry.url === metadata.canonical)).toBeTruthy();
 
+      await page.locator('img[loading="lazy"]').evaluateAll((images) => {
+        images.forEach((image) => {
+          image.loading = 'eager';
+        });
+      });
+      await page.waitForFunction(() => [...document.images]
+        .filter((image) => image.loading === 'lazy')
+        .every((image) => image.complete));
+
       const brokenImages = await page.evaluate(() => [...document.images]
         .filter((image) => !image.complete || image.naturalWidth === 0)
         .map((image) => image.currentSrc || image.src || image.alt));

@@ -4,7 +4,7 @@ const baseURL = process.env.SITE_BASE_URL || 'http://127.0.0.1:4334';
 
 export default defineConfig({
   testDir: './tests',
-  testMatch: 'site.audit.spec.mjs',
+  testMatch: '*.spec.mjs',
   fullyParallel: false,
   workers: 1,
   timeout: 90000,

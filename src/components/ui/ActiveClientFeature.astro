@@ -1,0 +1,92 @@
+---
+import type { ActiveClient } from '../../data/siteData';
+
+interface Props {
+  client: ActiveClient;
+}
+
+const { client } = Astro.props;
+---
+
+<article class="active-client-feature" aria-labelledby="active-client-red-barons">
+  <div class="active-client-feature__visual">
+    <div class="active-client-feature__fallback" aria-hidden="true">
+      <span>LIVE CLIENT WEBSITE</span>
+      <strong>Red Barons Bit of Everything</strong>
+    </div>
+    <img
+      src={client.image.src}
+      alt={client.image.alt}
+      width={client.image.width}
+      height={client.image.height}
+      loading="lazy"
+      decoding="async"
+      data-active-client-image
+    />
+    <span class="active-client-feature__image-label">LIVE SURFACE</span>
+  </div>
+
+  <div class="active-client-feature__content">
+    <div class="active-client-feature__eyebrow">
+      <span class="active-client-feature__pulse" aria-hidden="true"></span>
+      <span>{client.status}</span>
+    </div>
+    <p class="active-client-feature__location">{client.location}</p>
+    <h3 id="active-client-red-barons">{client.name}</h3>
+    <p class="active-client-feature__summary">{client.summary}</p>
+    <p class="active-client-feature__note">{client.currentNote}</p>
+    <p class="active-client-feature__live">{client.liveSurfaceNote}</p>
+    <ul class="active-client-feature__tags" aria-label="Project categories">
+      {client.tags.map((tag) => <li>{tag}</li>)}
+    </ul>
+    <a
+      class="signal-button active-client-feature__cta"
+      href={client.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="View the Red Barons Bit of Everything live work-in-progress website — opens in a new tab."
+    >
+      <span>{client.cta}</span><span aria-hidden="true">+</span>
+    </a>
+  </div>
+</article>
+
+<style is:global>
+  .active-client-feature{position:relative;display:grid;grid-template-columns:minmax(0,42fr) minmax(0,58fr);min-height:330px;margin:0 0 clamp(2rem,4vw,3.75rem);overflow:hidden;border:1px solid rgba(130,154,178,.34);background:linear-gradient(135deg,rgba(13,25,39,.96),rgba(5,11,18,.98) 62%);box-shadow:0 28px 70px rgba(0,0,0,.3)}
+  .active-client-feature::before,.active-client-feature::after{content:"";position:absolute;z-index:3;width:28px;height:28px;pointer-events:none}
+  .active-client-feature::before{top:10px;left:10px;border-top:1px solid var(--blue);border-left:1px solid var(--blue)}
+  .active-client-feature::after{right:10px;bottom:10px;border-right:1px solid var(--blue);border-bottom:1px solid var(--blue)}
+  .active-client-feature__visual{position:relative;min-width:0;overflow:hidden;border-right:1px solid rgba(80,158,235,.3);background:#070d14}
+  .active-client-feature__visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;background:#f2eee6;transition:transform .45s ease,filter .45s ease}
+  .active-client-feature:hover .active-client-feature__visual img{transform:scale(1.012);filter:saturate(1.04) contrast(1.02)}
+  .active-client-feature__fallback{position:absolute;inset:0;display:grid;align-content:center;gap:.7rem;padding:2rem;background:radial-gradient(circle at 20% 35%,rgba(31,116,202,.18),transparent 42%),#070d14;color:var(--silver)}
+  .active-client-feature__fallback span,.active-client-feature__image-label{font-family:var(--font-mono);font-size:.64rem;letter-spacing:.18em;color:var(--blue);text-transform:uppercase}
+  .active-client-feature__fallback strong{max-width:14ch;font-family:var(--font-display);font-size:clamp(1.7rem,3vw,2.7rem);line-height:.96;text-transform:uppercase}
+  .active-client-feature__image-label{position:absolute;right:1rem;bottom:1rem;z-index:2;padding:.45rem .6rem;border:1px solid rgba(86,166,244,.38);background:rgba(3,9,15,.88)}
+  .active-client-feature__content{display:flex;min-width:0;flex-direction:column;justify-content:center;padding:clamp(1.75rem,3.6vw,3.5rem)}
+  .active-client-feature__eyebrow{display:flex;align-items:center;gap:.65rem;margin-bottom:.55rem;font-family:var(--font-mono);font-size:.72rem;font-weight:700;letter-spacing:.16em;color:#8ec7ff;text-transform:uppercase}
+  .active-client-feature__pulse{width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 0 rgba(55,157,255,.55);animation:active-client-pulse 2.4s ease-out infinite}
+  .active-client-feature__location{margin:0 0 1rem;font-family:var(--font-mono);font-size:.7rem;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .active-client-feature h3{max-width:18ch;margin:0 0 1rem;font-family:var(--font-display);font-size:clamp(2rem,4vw,4rem);line-height:.92;text-transform:uppercase}
+  .active-client-feature__summary{max-width:58ch;margin:0 0 1rem;font-size:clamp(1.05rem,1.4vw,1.25rem);line-height:1.6;color:var(--silver)}
+  .active-client-feature__note,.active-client-feature__live{max-width:68ch;margin:.35rem 0;color:var(--muted);line-height:1.65}
+  .active-client-feature__live{padding-left:1rem;border-left:1px solid var(--blue);color:#c6d4e2}
+  .active-client-feature__tags{display:flex;flex-wrap:wrap;gap:.45rem;margin:1.25rem 0;padding:0;list-style:none}
+  .active-client-feature__tags li{padding:.42rem .62rem;border:1px solid rgba(126,151,176,.3);font-family:var(--font-mono);font-size:.63rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+  .active-client-feature__cta{align-self:flex-start;width:auto;min-width:340px;max-width:100%;min-height:52px;height:auto}
+  .active-client-feature__cta>span:first-child{flex:1;white-space:nowrap}
+  @keyframes active-client-pulse{0%{box-shadow:0 0 0 0 rgba(55,157,255,.55)}70%,100%{box-shadow:0 0 0 10px rgba(55,157,255,0)}}
+  @media(max-width:900px){.active-client-feature{grid-template-columns:1fr}.active-client-feature__visual{aspect-ratio:16/9;border-right:0;border-bottom:1px solid rgba(80,158,235,.3)}.active-client-feature__content{padding:clamp(1.5rem,5vw,2.5rem)}}
+  @media(max-width:600px){.active-client-feature h3{font-size:clamp(2rem,11vw,3rem)}.active-client-feature__content{padding:1.4rem}.active-client-feature__cta{width:100%;min-width:0;min-height:52px;justify-content:space-between}.active-client-feature__cta>span:first-child{white-space:normal}.active-client-feature__image-label{right:.7rem;bottom:.7rem}}
+  @media(prefers-reduced-motion:reduce){.active-client-feature__pulse{animation:none}.active-client-feature__visual img{transition:none}.active-client-feature:hover .active-client-feature__visual img{transform:none}}
+</style>
+
+<script>
+  document.querySelectorAll<HTMLImageElement>('[data-active-client-image]').forEach((image) => {
+    const showFallback = () => {
+      image.hidden = true;
+    };
+    if (image.complete && image.naturalWidth === 0) showFallback();
+    image.addEventListener('error', showFallback);
+  });
+</script>
