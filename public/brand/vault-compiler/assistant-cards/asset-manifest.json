@@ -1,0 +1,56 @@
+﻿[
+    {
+        "file":  "ROBOT_01_MAKER_ASSISTANT_CANONICAL.jpg",
+        "sha256":  "538ec9a3fda62dfbd1e1be17216f35e27e3c4a4a01da263212280a032e5b4ce5",
+        "original_width":  1229,
+        "original_height":  1536,
+        "derivatives":  [
+                            "maker-assistant-640.webp maker-assistant-960.webp"
+                        ]
+    },
+    {
+        "file":  "ROBOT_02_BAKERY_ASSISTANT_CANONICAL.jpg",
+        "sha256":  "ac8b16e073d746addd85de3cf10aa45a3d30378815864f159d9838c5fa53a80b",
+        "original_width":  1229,
+        "original_height":  1536,
+        "derivatives":  [
+                            "bakery-assistant-640.webp bakery-assistant-960.webp"
+                        ]
+    },
+    {
+        "file":  "ROBOT_03_HOUSEHOLD_ASSISTANT_CANONICAL.jpg",
+        "sha256":  "5dc6d83b4035cfeef0e23b5881e852c504a13228a89a6c41f4c005e271c5d622",
+        "original_width":  1229,
+        "original_height":  1536,
+        "derivatives":  [
+                            "household-assistant-640.webp household-assistant-960.webp"
+                        ]
+    },
+    {
+        "file":  "ROBOT_04_CONTRACTOR_ASSISTANT_CANONICAL.jpg",
+        "sha256":  "7bcde13fbfc00087835e0e54b0142dea78a84091a47a4e813dba3b6b1f73131f",
+        "original_width":  1229,
+        "original_height":  1536,
+        "derivatives":  [
+                            "contractor-assistant-640.webp contractor-assistant-960.webp"
+                        ]
+    },
+    {
+        "file":  "ROBOT_05_RESEARCH_ASSISTANT_CANONICAL.jpg",
+        "sha256":  "4916e72520a22df3d0337a9ccba275aacafb3a22a58910ba5c056c79230d8fc5",
+        "original_width":  1229,
+        "original_height":  1536,
+        "derivatives":  [
+                            "research-assistant-640.webp research-assistant-960.webp"
+                        ]
+    },
+    {
+        "file":  "ROBOT_06_PERSONAL_OPERATIONS_ASSISTANT_CANONICAL.jpg",
+        "sha256":  "205ab29aa3bdbf169317780c10279763003d9b5db0ba6bce0e429398d44731ca",
+        "original_width":  1229,
+        "original_height":  1536,
+        "derivatives":  [
+                            "personal-operations-assistant-640.webp personal-operations-assistant-960.webp"
+                        ]
+    }
+]

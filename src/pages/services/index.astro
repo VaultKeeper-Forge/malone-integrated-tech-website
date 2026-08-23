@@ -7,36 +7,75 @@ import { siteCopy } from '../../data/siteData';
 ---
 
 <BaseLayout
-  title="AI Systems Integration Services | Malone Integrated Tech"
-  description="Practical AI assistant integration, workflow mapping, tool connections, and continuity-focused systems delivery for people and small teams."
+  title="AI Assistant and Vault Compiler Services | Malone Integrated Tech"
+  description="Explore integrated AI assistant systems, Vault Compiler packaging, workflow mapping, tool connections, and continuity-focused delivery for people and small teams."
   currentPath="/services"
 >
   <TopNav />
-  <main class="section-shell page-main">
+  <main class="section-shell page-main services-overview">
+    <nav class="service-breadcrumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a><span aria-hidden="true">/</span><span aria-current="page">Services</span>
+    </nav>
+
     <SectionHeading
       level={1}
       title="Services"
-      heading="Implementation tracks tuned to small teams"
-      description="Clear ownership and review points for each delivery stage."
+      heading="Practical systems, built around real work"
+      description="Start with the outcome you need. We map the work, connect the right tools, and keep the handoffs understandable."
     />
-    <div class="content-card-grid content-card-grid--three">
-      {siteCopy.services.map((service) => (
-        <article class="card-panel reveal">
-          <p class="chip">Cadence: {service.cadence}</p>
-          <h2 class="detail-card__title">{service.title}</h2>
-          <p class="detail-card__summary">{service.summary}</p>
-          <ul class="detail-card__list">
-            {service.deliverables.map((deliverable) => (
-              <li class="detail-card__item">
-                <span class="detail-card__bullet"></span>
-                {deliverable}
-              </li>
-            ))}
-          </ul>
-        </article>
-      ))}
-    </div>
+
+    <section class="service-feature-grid" aria-label="Featured services">
+      <a class="service-feature service-feature--assistant reveal" href="/services/assistant-systems">
+        <span class="service-feature__index">01 / ASSISTANT SYSTEMS</span>
+        <div>
+          <h2>Integrated assistants shaped around your day</h2>
+          <p>We organize the information, tools, approvals, and follow-through an assistant needs to be genuinely useful.</p>
+        </div>
+        <span class="service-feature__action">Explore assistant systems <i aria-hidden="true">-&gt;</i></span>
+      </a>
+
+      <a class="service-feature service-feature--vault reveal" href="/services/vault-compiler">
+        <span class="service-feature__index">02 / VAULT COMPILER</span>
+        <div>
+          <h2>Turn scattered AI instructions into a reviewed package</h2>
+          <p>Vault Compiler is an active build for organizing selected instructions, preferences, source notes, and continuity rules.</p>
+        </div>
+        <span class="service-feature__action">See the Vault Compiler plan <i aria-hidden="true">-&gt;</i></span>
+      </a>
+    </section>
+
+    <section class="service-supporting" aria-labelledby="supporting-services-title">
+      <div class="service-supporting__heading">
+        <p class="eyebrow">SUPPORTING TRACKS</p>
+        <h2 id="supporting-services-title">The work that connects the system</h2>
+      </div>
+      <div class="content-card-grid content-card-grid--three">
+        {siteCopy.services.map((service) => (
+          <article class="card-panel reveal">
+            <p class="chip">Cadence: {service.cadence}</p>
+            <h3 class="detail-card__title">{service.title}</h3>
+            <p class="detail-card__summary">{service.summary}</p>
+            <ul class="detail-card__list">
+              {service.deliverables.map((deliverable) => (
+                <li class="detail-card__item">
+                  <span class="detail-card__bullet"></span>
+                  {deliverable}
+                </li>
+              ))}
+            </ul>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="service-next-step">
+      <div>
+        <p class="eyebrow">START WITH THE FRICTION</p>
+        <h2>You do not need to know the technical answer first.</h2>
+        <p>Tell us what keeps getting repeated, lost, delayed, or disconnected. We will help map the next practical step.</p>
+      </div>
+      <a class="signal-button" href="/contact">Tell us what is stuck <span aria-hidden="true">+</span></a>
+    </section>
   </main>
   <Footer />
 </BaseLayout>
-

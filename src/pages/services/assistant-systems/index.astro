@@ -1,0 +1,76 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import TopNav from '../../../components/layout/TopNav.astro';
+import Footer from '../../../components/layout/Footer.astro';
+import AssistantProfileCard from '../../../components/ui/AssistantProfileCard.astro';
+import { assistantProfiles } from '../../../data/vaultCompiler';
+---
+
+<BaseLayout
+  title="Integrated AI Assistant Systems | Malone Integrated Tech"
+  description="Explore practical AI assistant systems designed around real people, small businesses, existing tools, human approval, and continuity across everyday work."
+  currentPath="/services/assistant-systems"
+>
+  <TopNav />
+  <main class="service-landing service-landing--assistants">
+    <section class="section-shell service-detail-hero">
+      <nav class="service-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a><span aria-hidden="true">/</span><a href="/services">Services</a><span aria-hidden="true">/</span><span aria-current="page">Assistant Systems</span>
+      </nav>
+      <div class="service-detail-hero__grid">
+        <div class="service-detail-hero__copy reveal">
+          <p class="eyebrow">SERVICE 01 / INTEGRATED ASSISTANTS</p>
+          <h1>An assistant shaped around the way you actually work</h1>
+          <p class="service-detail-hero__lead">We connect information, everyday tools, approval points, and follow-through so an assistant can help without taking control away.</p>
+          <div class="service-detail-hero__actions">
+            <a class="signal-button" href="/contact">Map your assistant <span aria-hidden="true">+</span></a>
+            <a class="text-link" href="#assistant-profiles">See six starting points <span aria-hidden="true">-&gt;</span></a>
+          </div>
+        </div>
+        <div class="service-detail-hero__visual service-detail-hero__visual--card reveal" aria-hidden="true">
+          <div class="service-orbit service-orbit--outer"></div>
+          <div class="service-orbit service-orbit--inner"></div>
+          <img src="/brand/vault-compiler/assistant-cards/maker-assistant-960.webp" width="960" height="1200" alt="" fetchpriority="high" />
+          <p><span>01</span> CONTEXT <i></i> TOOLS <i></i> CONTINUITY</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-shell service-principles" aria-label="Assistant system principles">
+      <article><span>01</span><h2>Built around your work</h2><p>The system begins with your real routines, tools, boundaries, and decisions.</p></article>
+      <article><span>02</span><h2>Human approval stays visible</h2><p>Important actions keep clear review points instead of disappearing into automation.</p></article>
+      <article><span>03</span><h2>Continuity is designed in</h2><p>Useful context can carry forward without forcing you to explain the same work again.</p></article>
+    </section>
+
+    <section id="assistant-profiles" class="section-shell assistant-profile-section">
+      <div class="assistant-profile-section__heading reveal">
+        <p class="eyebrow">SIX REFERENCE PROFILES</p>
+        <h2>Different work needs different kinds of help</h2>
+        <p>These profiles make the possibilities easier to see. They are design starting points, not claims of autonomous employees or finished products.</p>
+      </div>
+      <div class="assistant-profile-grid">
+        {assistantProfiles.map((profile, index) => (
+          <AssistantProfileCard profile={profile} priority={index === 0} />
+        ))}
+      </div>
+    </section>
+
+    <section class="section-shell service-path" aria-labelledby="assistant-path-title">
+      <div class="service-path__heading">
+        <p class="eyebrow">A CONTROLLED BUILD PATH</p>
+        <h2 id="assistant-path-title">Start small. Prove usefulness. Expand with evidence.</h2>
+      </div>
+      <ol>
+        <li><span>01</span><div><h3>Map the work</h3><p>Identify repeated friction, source information, decision owners, and privacy boundaries.</p></div></li>
+        <li><span>02</span><div><h3>Build one useful path</h3><p>Connect the smallest workflow that can produce a visible, reviewable improvement.</p></div></li>
+        <li><span>03</span><div><h3>Test with the people using it</h3><p>Review behavior, correct weak handoffs, and expand only where the evidence supports it.</p></div></li>
+      </ol>
+    </section>
+
+    <section class="section-shell service-next-step service-next-step--wide">
+      <div><p class="eyebrow">YOUR WORK IS THE SPEC</p><h2>Let us start with the part of your day that should be easier.</h2></div>
+      <a class="signal-button" href="/contact">Start a discovery <span aria-hidden="true">+</span></a>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>

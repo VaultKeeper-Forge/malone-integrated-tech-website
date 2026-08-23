@@ -15,6 +15,7 @@ const siteOrigin = (Astro.site ?? new URL('https://www.maloneintegratedtech.com'
 const normalizedPath = currentPath === '/'
   ? '/'
   : '/' + String(currentPath).replace(/^\/+|\/+$/g, '');
+const isServiceDetail = normalizedPath.startsWith('/services/');
 const canonical = new URL(normalizedPath, siteOrigin).toString();
 const socialImage = new URL('/brand/malone_lockup_horizontal_dark.png', siteOrigin).toString();
 const logoImage = new URL('/brand/malone_mark_primary.svg', siteOrigin).toString();
@@ -26,14 +27,17 @@ const pageKind = normalizedPath === '/contact'
   ? 'ContactPage'
   : normalizedPath === '/'
     ? 'WebPage'
-    : 'CollectionPage';
+    : isServiceDetail
+      ? 'WebPage'
+      : 'CollectionPage';
 
 const serviceNames = [
   'Integrated assistant systems',
   'Business systems',
   'Tool integration',
   'Data and continuity',
-  'Applied AI solutions'
+  'Applied AI solutions',
+  'Vault Compiler'
 ];
 
 const researchNames = [
@@ -113,11 +117,15 @@ const schemaGraph: Record<string, unknown>[] = [
 ];
 
 if (normalizedPath !== '/') {
-  const label = normalizedPath
-    .slice(1)
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
+  const breadcrumbLabels: Record<string, string> = {
+    services: 'Services',
+    'assistant-systems': 'Assistant Systems',
+    'vault-compiler': 'Vault Compiler',
+    projects: 'Current Work',
+    research: 'Research & Development',
+    contact: 'Contact'
+  };
+  const segments = normalizedPath.split('/').filter(Boolean);
 
   schemaGraph.push({
     '@type': 'BreadcrumbList',
@@ -129,12 +137,15 @@ if (normalizedPath !== '/') {
         name: 'Home',
         item: siteOrigin + '/'
       },
-      {
+      ...segments.map((segment, index) => ({
         '@type': 'ListItem',
-        position: 2,
-        name: label,
-        item: canonical
-      }
+        position: index + 2,
+        name: breadcrumbLabels[segment] ?? segment
+          .split('-')
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(' '),
+        item: new URL('/' + segments.slice(0, index + 1).join('/'), siteOrigin).toString()
+      }))
     ]
   });
 }
@@ -155,6 +166,24 @@ if (normalizedPath === '/services') {
         serviceType: name
       }
     }))
+  });
+}
+
+const serviceDetailNames: Record<string, string> = {
+  '/services/assistant-systems': 'Integrated Assistant Systems',
+  '/services/vault-compiler': 'Vault Compiler'
+};
+
+if (serviceDetailNames[normalizedPath]) {
+  schemaGraph.push({
+    '@type': 'Service',
+    '@id': canonical + '#service',
+    name: serviceDetailNames[normalizedPath],
+    url: canonical,
+    description,
+    provider: { '@id': organizationId },
+    areaServed: 'US',
+    serviceType: serviceDetailNames[normalizedPath]
   });
 }
 
@@ -244,7 +273,7 @@ const structuredData = JSON.stringify({
     <div class="site-shell">
       <slot />
     </div>
-    {(normalizedPath === '/' || normalizedPath === '/projects') && <MaloneLens />}
+    {(normalizedPath === '/' || normalizedPath === '/projects' || normalizedPath.startsWith('/services')) && <MaloneLens />}
   </body>
 </html>
 
