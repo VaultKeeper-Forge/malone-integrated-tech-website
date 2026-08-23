@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.SITE_BASE_URL || 'http://127.0.0.1:4334';
+const testPort = Number(process.env.MALONE_TEST_PORT || 4334);
+const baseURL = process.env.SITE_BASE_URL || `http://127.0.0.1:${testPort}`;
 
 export default defineConfig({
   testDir: './tests',
@@ -11,8 +12,8 @@ export default defineConfig({
   reporter: [['line']],
   outputDir: process.env.MALONE_TEST_OUTPUT || 'C:/tmp/malone-site-audit',
   webServer: {
-    command: 'npm.cmd run dev -- --host 127.0.0.1 --port 4334',
-    url: 'http://127.0.0.1:4334/contact',
+    command: `npm.cmd run dev -- --host 127.0.0.1 --port ${testPort}`,
+    url: `http://127.0.0.1:${testPort}/contact`,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
     env: {

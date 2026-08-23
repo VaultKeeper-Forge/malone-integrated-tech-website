@@ -7,6 +7,8 @@ const howItWorksPath = `${homePath}#how-it-works`;
 const researchPath = withBase('/research');
 const proofPath = withBase('/projects');
 const servicesPath = withBase('/services');
+const assistantSystemsPath = withBase('/services/assistant-systems');
+const vaultCompilerPath = withBase('/services/vault-compiler');
 const contactPath = withBase('/contact');
 ---
 
@@ -35,6 +37,8 @@ const contactPath = withBase('/contact');
         <a href={researchPath}>Research &amp; Development</a>
         <a href={proofPath}>Current Work</a>
         <a href={servicesPath}>Services</a>
+        <a href={assistantSystemsPath} class="site-nav__menu-sub">Assistant Systems</a>
+        <a href={vaultCompilerPath} class="site-nav__menu-sub">Vault Compiler</a>
         <a href={contactPath}>Start a project</a>
       </div>
     </details>

@@ -1,4 +1,4 @@
-﻿export type Severity = 'production' | 'pilot' | 'research';
+export type Severity = 'production' | 'pilot' | 'research';
 
 export interface Capability {
   title: string;
@@ -167,21 +167,21 @@ export const siteCopy: SiteCopy = {
       summary:
         'A practical mapping of current workflows, tools, and friction points before implementation.',
       deliverables: ['Workflow map', 'Risk log', 'Priority roadmap'],
-      cadence: '2â€“4 weeks'
+      cadence: '2-4 weeks'
     },
     {
       title: 'Assistant Integration Build',
       summary:
         'Develop production-ready assistant workflows with operational guardrails and onboarding documentation.',
       deliverables: ['Tool contracts', 'Fallback matrix', 'Runbook'],
-      cadence: '4â€“8 weeks'
+      cadence: '4-8 weeks'
     },
     {
       title: 'R&D Cohort Support',
       summary:
         'Experimental track for wearable, continuity, and ambient-capture work under review controls.',
       deliverables: ['Experiment protocol', 'Evaluation artifacts', 'Decision summary'],
-      cadence: '3â€“6 weeks'
+      cadence: '3-6 weeks'
     }
   ]
 };

@@ -1,7 +1,15 @@
 import { test, expect } from '@playwright/test';
 import path from 'node:path';
 
-const routes = ['/', '/services', '/research', '/projects', '/contact'];
+const routes = [
+  '/',
+  '/services',
+  '/services/assistant-systems',
+  '/services/vault-compiler',
+  '/research',
+  '/projects',
+  '/contact'
+];
 const productionOrigin = 'https://www.maloneintegratedtech.com';
 const screenshotRoot = process.env.MALONE_SCREENSHOT_DIR || 'C:/tmp/malone-site-screenshots';
 const mockContact = process.env.CONTACT_MODE === 'mock';
@@ -89,7 +97,6 @@ test.describe('Malone consumer surface', () => {
         });
       });
       await page.waitForFunction(() => [...document.images]
-        .filter((image) => image.loading === 'lazy')
         .every((image) => image.complete));
 
       const brokenImages = await page.evaluate(() => [...document.images]
@@ -221,6 +228,24 @@ test.describe('Malone consumer surface', () => {
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
     await page.locator('a[href="/contact"]:visible').first().click();
     await expect(page).toHaveURL(new RegExp('/contact/?$'));
+    expect(faults).toEqual([]);
+  });
+
+  test('Vault service routes expose canonical assets, boundaries, and everyday Lens copy', async ({ page }) => {
+    const faults = observe(page);
+    await page.goto('/services/assistant-systems', { waitUntil: 'networkidle' });
+    await expect(page.locator('[data-assistant-profile]')).toHaveCount(6);
+    await expect(page.locator('[data-assistant-profile] img')).toHaveCount(6);
+    await expect(page.getByText(/not claims of autonomous employees or finished products/i)).toBeVisible();
+    await page.getByRole('button', { name: /open the malone integrated tech lens/i }).click();
+    await expect(page.locator('body')).toContainText('An AI assistant that fits the way you already work');
+
+    await page.goto('/services/vault-compiler', { waitUntil: 'networkidle' });
+    await expect(page.getByText(/Public self-service access is not being claimed/i)).toBeVisible();
+    await expect(page.locator('.vault-flow > li')).toHaveCount(4);
+    await expect(page.locator('.vault-profile-rail__cards img')).toHaveCount(6);
+    await page.getByRole('button', { name: /open the malone integrated tech lens/i }).click();
+    await expect(page.locator('body')).toContainText('Bring your AI notes and instructions together in one package you can check');
     expect(faults).toEqual([]);
   });
 

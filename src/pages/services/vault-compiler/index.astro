@@ -1,0 +1,101 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import TopNav from '../../../components/layout/TopNav.astro';
+import Footer from '../../../components/layout/Footer.astro';
+import { assistantProfiles, vaultCompilerFlow } from '../../../data/vaultCompiler';
+---
+
+<BaseLayout
+  title="Vault Compiler for Portable AI Context | Malone Integrated Tech"
+  description="Vault Compiler is an active Malone Integrated Tech build for turning selected AI instructions, preferences, source notes, and continuity rules into a reviewed package."
+  currentPath="/services/vault-compiler"
+>
+  <TopNav />
+  <main class="service-landing service-landing--vault">
+    <section class="section-shell service-detail-hero service-detail-hero--vault">
+      <nav class="service-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a><span aria-hidden="true">/</span><a href="/services">Services</a><span aria-hidden="true">/</span><span aria-current="page">Vault Compiler</span>
+      </nav>
+      <div class="service-detail-hero__grid">
+        <div class="service-detail-hero__copy reveal">
+          <p class="eyebrow">SERVICE 02 / ACTIVE DEVELOPMENT</p>
+          <h1>Turn scattered AI instructions into a reviewed, portable package</h1>
+          <p class="service-detail-hero__lead">Vault Compiler is being built to organize selected instructions, preferences, source notes, and continuity rules without treating a pile of files as trusted truth.</p>
+          <div class="service-detail-hero__actions">
+            <a class="signal-button" href="/contact?interest=vault-compiler">Ask about Vault Compiler <span aria-hidden="true">+</span></a>
+            <a class="text-link" href="#how-vault-compiler-works">See the planned flow <span aria-hidden="true">-&gt;</span></a>
+          </div>
+          <p class="service-status-note"><i aria-hidden="true"></i><strong>Current state:</strong> migration foundation and private workflow validation. Public self-service access is not being claimed.</p>
+        </div>
+        <div class="vault-compiler-visual reveal" aria-hidden="true">
+          <span class="vault-compiler-visual__corner vault-compiler-visual__corner--tl"></span>
+          <span class="vault-compiler-visual__corner vault-compiler-visual__corner--br"></span>
+          <div class="vault-source vault-source--one">NOTES</div>
+          <div class="vault-source vault-source--two">RULES</div>
+          <div class="vault-source vault-source--three">SOURCES</div>
+          <div class="vault-core">
+            <img src="/brand/malone_mark_monochrome_white.svg" alt="" />
+            <strong>VAULT<br />COMPILER</strong>
+            <span>REVIEWED PACKAGE</span>
+          </div>
+          <svg viewBox="0 0 600 460" focusable="false">
+            <path d="M62 88 C170 88 190 182 258 207" />
+            <path d="M62 230 C170 230 190 230 258 230" />
+            <path d="M62 372 C170 372 190 278 258 253" />
+            <path d="M390 230 C470 230 492 230 552 230" />
+          </svg>
+          <div class="vault-output">VERSIONED<br />OUTPUT</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-shell vault-trust-strip" aria-label="Vault Compiler boundaries">
+      <p><span>01</span> Sources stay identifiable</p>
+      <p><span>02</span> Conflicts stay visible</p>
+      <p><span>03</span> People approve releases</p>
+      <p><span>04</span> Versions remain traceable</p>
+    </section>
+
+    <section id="how-vault-compiler-works" class="section-shell vault-flow-section">
+      <div class="vault-flow-section__heading reveal">
+        <p class="eyebrow">THE PLANNED CONTROLLED FLOW</p>
+        <h2>Organize first. Validate before packaging.</h2>
+        <p>The compiler boundary is designed to preserve source lineage and human review rather than silently blending every file into one answer.</p>
+      </div>
+      <ol class="vault-flow">
+        {vaultCompilerFlow.map((step) => (
+          <li class="reveal">
+            <span>{step.number}</span>
+            <p>{step.technical}</p>
+            <h3>{step.name}</h3>
+            <p>{step.everyday}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="section-shell vault-safety-grid">
+      <article class="reveal"><p class="eyebrow">WHAT IT IS FOR</p><h2>A clearer handoff between your source material and an assistant package</h2><ul><li>Selected instructions and preferences</li><li>Source-linked notes and continuity rules</li><li>Validation findings you can inspect</li><li>Dated packages with explicit versions</li></ul></article>
+      <article class="reveal"><p class="eyebrow">WHAT IT DOES NOT ASSUME</p><h2>More files do not automatically mean more truth</h2><ul><li>Uploads are not automatically trusted</li><li>Conflicts are not silently erased</li><li>Compilation is not permission to deploy</li><li>Approval and access remain separate controls</li></ul></article>
+    </section>
+
+    <section class="section-shell vault-profile-rail" aria-labelledby="vault-profile-title">
+      <div><p class="eyebrow">ONE FOUNDATION / DIFFERENT WORK</p><h2 id="vault-profile-title">A reviewed package can support many kinds of assistants</h2><a class="text-link" href="/services/assistant-systems">Explore assistant systems <span aria-hidden="true">-&gt;</span></a></div>
+      <div class="vault-profile-rail__cards">
+        {assistantProfiles.map((profile) => (
+          <a href={`/services/assistant-systems#assistant-profiles`} aria-label={`View ${profile.name}`}>
+            <img src={`/brand/vault-compiler/assistant-cards/${profile.imageSlug}-640.webp`} width="640" height="800" loading="lazy" decoding="async" alt="" />
+            <span>{profile.number}</span>
+            <strong>{profile.name}</strong>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="section-shell service-next-step service-next-step--wide">
+      <div><p class="eyebrow">EARLY CONVERSATIONS</p><h2>Have assistant material that is useful but scattered?</h2><p>We can map what exists and determine whether the Vault Compiler path fits. No public self-service access is implied.</p></div>
+      <a class="signal-button" href="/contact?interest=vault-compiler">Start a conversation <span aria-hidden="true">+</span></a>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>

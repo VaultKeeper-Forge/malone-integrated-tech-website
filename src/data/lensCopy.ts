@@ -644,6 +644,49 @@ lensPrototypeCopy.push(
   }
 );
 
+lensPrototypeCopy.push(
+  {
+    key: 'services-overview-heading', region: 'capabilities',
+    technical: 'Practical systems, built around real work',
+    everyday: 'Useful AI help for the work you already do'
+  },
+  {
+    key: 'services-overview-assistant-heading', region: 'capabilities',
+    technical: 'Integrated assistants shaped around your day',
+    everyday: 'An AI assistant built around your daily work'
+  },
+  {
+    key: 'services-overview-vault-heading', region: 'capabilities',
+    technical: 'Turn scattered AI instructions into a reviewed package',
+    everyday: 'Put your AI notes and instructions into one clear package'
+  },
+  {
+    key: 'assistant-systems-heading', region: 'capabilities',
+    technical: 'An assistant shaped around the way you actually work',
+    everyday: 'An AI assistant that fits the way you already work'
+  },
+  {
+    key: 'assistant-systems-lead', region: 'capabilities',
+    technical: 'We connect information, everyday tools, approval points, and follow-through so an assistant can help without taking control away.',
+    everyday: 'We organize your information and connect your everyday tools so the assistant is useful while you stay in control.'
+  },
+  {
+    key: 'vault-compiler-heading', region: 'capabilities',
+    technical: 'Turn scattered AI instructions into a reviewed, portable package',
+    everyday: 'Bring your AI notes and instructions together in one package you can check'
+  },
+  {
+    key: 'vault-compiler-lead', region: 'capabilities',
+    technical: 'Vault Compiler is being built to organize selected instructions, preferences, source notes, and continuity rules without treating a pile of files as trusted truth.',
+    everyday: 'Vault Compiler is being built to organize the AI instructions and notes you choose, show where they came from, and let you review the result.'
+  },
+  {
+    key: 'vault-compiler-flow-heading', region: 'process',
+    technical: 'Organize first. Validate before packaging.',
+    everyday: 'Sort it out and check it before making the package.'
+  }
+);
+
 export const lensRouteCoverage = {
   '/': {
     prototype: ['hero', 'capabilities', 'How It Works', 'research', 'current work', 'contact CTA'],
@@ -652,6 +695,14 @@ export const lensRouteCoverage = {
   '/services': {
     review: ['page introduction', 'three service headings and summaries'],
     preserve: ['deliverable names', 'cadences']
+  },
+  '/services/assistant-systems': {
+    review: ['page introduction', 'assistant profile summaries', 'build path'],
+    preserve: ['profile names', 'reference-only qualifier', 'contact route']
+  },
+  '/services/vault-compiler': {
+    review: ['page introduction', 'controlled flow', 'public boundaries'],
+    preserve: ['Vault Compiler name', 'active-development status', 'no-public-access qualifier']
   },
   '/research': {
     review: ['page introduction', 'three research summaries'],

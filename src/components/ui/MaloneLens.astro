@@ -66,7 +66,7 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
   </section>
 
   <p class="mit-lens__live" aria-live="polite" aria-atomic="true" data-lens-live></p>
-  <script type="application/json" data-lens-copy set:html={copyPayload}></script>
+  <script is:inline type="application/json" data-lens-copy set:html={copyPayload}></script>
 </div>
 
 <script is:inline>
