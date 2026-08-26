@@ -1,4 +1,4 @@
-﻿---
+---
 import { withBase } from '../../lib/paths';
 
 const homePath = withBase('/');
@@ -8,6 +8,7 @@ const researchPath = withBase('/research');
 const proofPath = withBase('/projects');
 const servicesPath = withBase('/services');
 const contactPath = withBase('/contact');
+const clientSignInPath = 'https://malone-client-operations-staging.vercel.app/login?next=%2Fclient';
 ---
 
 <nav class="site-nav" aria-label="Primary navigation">
@@ -23,6 +24,7 @@ const contactPath = withBase('/contact');
       <li><a href={researchPath} data-nav-section="research">R&amp;D</a></li>
       <li><a href={proofPath} data-nav-section="proof">Current Work</a></li>
       <li><a href={servicesPath}>Services</a></li>
+      <li><a href={clientSignInPath}>Client Sign In</a></li>
     </ul>
     <a href={contactPath} class="signal-button signal-button--small site-nav__cta" data-cta="nav_contact">
       Start a project <span aria-hidden="true">+</span>
@@ -35,6 +37,7 @@ const contactPath = withBase('/contact');
         <a href={researchPath}>Research &amp; Development</a>
         <a href={proofPath}>Current Work</a>
         <a href={servicesPath}>Services</a>
+        <a href={clientSignInPath}>Client Sign In</a>
         <a href={contactPath}>Start a project</a>
       </div>
     </details>
@@ -62,4 +65,3 @@ const contactPath = withBase('/contact');
     sync();
   });
 </script>
-
