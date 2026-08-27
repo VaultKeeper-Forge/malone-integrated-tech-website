@@ -14,6 +14,10 @@ import { withBase } from '../../lib/paths';
     <p class="site-footer__statement">ForgeMesh connects the pieces so complex systems are easier to use and work stays connected.</p>
     <div class="site-footer__meta">
       <a href="mailto:curtis@maloneintegratedtech.com">curtis@maloneintegratedtech.com</a>
+      <nav class="site-footer__legal" aria-label="Legal">
+        <a href={withBase('/privacy')}>Privacy</a>
+        <a href={withBase('/terms')}>Terms</a>
+      </nav>
       <span>(c) {new Date().getFullYear()} Malone Integrated Tech</span>
     </div>
   </div>

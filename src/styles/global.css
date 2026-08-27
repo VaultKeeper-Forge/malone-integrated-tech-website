@@ -249,6 +249,25 @@ p { margin: 0; }
 .site-footer__statement { font-family: "Bahnschrift",sans-serif; letter-spacing: .08em; text-align: center; text-transform: uppercase; }
 .site-footer__meta { display: grid; justify-items: end; gap: 3px; }
 .site-footer__meta a:hover { color: var(--blue-bright); }
+.site-footer__legal { display: flex; gap: 14px; }
+.site-footer__legal a { text-decoration: underline; text-decoration-color: rgba(98,167,255,.35); text-underline-offset: 3px; }
+
+.legal-page { padding-block: clamp(72px,8vw,112px); }
+.legal-page__header { max-width: 860px; padding-bottom: clamp(36px,5vw,64px); border-bottom: 1px solid var(--line); }
+.legal-page__eyebrow { color: var(--blue-bright); font: .65rem "Bahnschrift",sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+.legal-page__header h1 { max-width: 12ch; margin-top: 14px; font-size: clamp(3rem,7vw,6.4rem); line-height: .92; }
+.legal-page__summary { max-width: 760px; margin-top: 24px; color: #a8b1bc; font-size: clamp(.98rem,1.5vw,1.12rem); line-height: 1.75; }
+.legal-page__effective { margin-top: 22px; color: #737f8b; font: .67rem "Bahnschrift",sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.legal-document { display: grid; max-width: 880px; gap: 38px; padding-top: clamp(40px,6vw,72px); }
+.legal-document section { scroll-margin-top: 100px; }
+.legal-document h2 { font-size: clamp(1.65rem,3vw,2.25rem); line-height: 1.1; }
+.legal-document p,.legal-document li { color: #aeb7c2; font-size: .98rem; line-height: 1.8; }
+.legal-document h2 + p,.legal-document h2 + ul { margin-top: 14px; }
+.legal-document p + p,.legal-document p + ul,.legal-document ul + p { margin-top: 14px; }
+.legal-document ul { display: grid; gap: 8px; margin: 0; padding-left: 1.35rem; }
+.legal-document a { color: #dce7f5; text-decoration: underline; text-decoration-color: rgba(98,167,255,.5); text-underline-offset: 3px; overflow-wrap: anywhere; }
+.legal-document a:hover { color: var(--blue-bright); }
+.legal-document__notice { padding: 22px 24px; border-left: 2px solid var(--blue); background: rgba(30,123,255,.045); }
 
 .card-panel { position: relative; padding: 24px; border: 1px solid rgba(199,204,212,.17); border-radius: 4px; background: linear-gradient(145deg,rgba(19,24,31,.9),rgba(8,11,15,.96)); box-shadow: 0 22px 55px rgba(0,0,0,.25); }
 .chip,.status-rail { display: inline-flex; align-items: center; padding: 5px 9px; border: 1px solid rgba(199,204,212,.17); border-radius: 2px; color: #87919d; font: .58rem "Bahnschrift",sans-serif; letter-spacing: .12em; text-transform: uppercase; }
@@ -376,6 +395,8 @@ p { margin: 0; }
   .contact-desk__actions .signal-button { width: 100%; }
   .site-footer__inner { grid-template-columns: 1fr; gap: 22px; }
   .site-footer__meta { justify-items: start; }
+  .legal-page { padding-block: 54px 80px; }
+  .legal-document { gap: 32px; }
 }
 @media (hover: none) { .capability-node:hover,.practice-panel:hover,.signal-button:hover { transform: none; } }
 @media (prefers-reduced-motion: reduce) {
