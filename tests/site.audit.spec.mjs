@@ -179,6 +179,46 @@ test.describe('Malone consumer surface', () => {
     });
   }
 
+  test('services publish clear prices without internal quote controls', async ({ page }) => {
+    const faults = observe(page);
+    await page.goto('/services', { waitUntil: 'networkidle' });
+
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Useful systems, clearly scoped.'
+    );
+    await expect(page.locator('[data-service-offer]')).toHaveCount(14);
+    await expect(page.locator('[data-care-plan]')).toHaveCount(3);
+    await expect(page.locator('[data-service-offer="systems-map"]')).toContainText('$250');
+    await expect(
+      page.locator('[data-service-offer="connected-business-website"]')
+    ).toContainText('$2,500');
+    await expect(
+      page.locator('[data-service-offer="managed-operations-system"]')
+    ).toContainText('$5,000–$10,000');
+    await expect(page.locator('[data-care-plan="site-care"]')).toContainText('$100 / month');
+    await expect(page.getByRole('link', { name: /request a fit check/i })).toHaveAttribute(
+      'href',
+      '/contact'
+    );
+    await expect(page.locator('body')).not.toContainText(
+      /internal floor|target margin|discount cap|labor cost|estimated hours/i
+    );
+
+    const services = await page.evaluate(() => {
+      const graph = [...document.querySelectorAll('script[type="application/ld+json"]')]
+        .flatMap((script) => JSON.parse(script.textContent || '{}')['@graph'] || []);
+      const itemList = graph.find((entry) => entry['@id']?.endsWith('#services'));
+      return itemList?.itemListElement?.map((entry) => entry.item) || [];
+    });
+    expect(services).toHaveLength(17);
+    expect(services.find((service) => service.name === 'Business Systems Map')?.offers?.price)
+      .toBe(250);
+    expect(
+      services.find((service) => service.name === 'Managed Operations System')?.offers?.lowPrice
+    ).toBe(5000);
+    expect(faults).toEqual([]);
+  });
+
   test('primary navigation and home scroll links click through', async ({ page, context }, info) => {
     test.skip(!info.project.name.startsWith('desktop'), 'Desktop interaction matrix.');
     const faults = observe(page);
@@ -303,5 +343,4 @@ test.describe('Malone consumer surface', () => {
     expect(faults).toEqual([]);
   });
 });
-
 

@@ -26,13 +26,6 @@ export interface ResearchFocus {
   status: string;
 }
 
-export interface ServiceTile {
-  title: string;
-  summary: string;
-  deliverables: string[];
-  cadence: string;
-}
-
 export interface SiteCopy {
   brand: string;
   domain: string;
@@ -44,7 +37,6 @@ export interface SiteCopy {
   process: ProcessStep[];
   proof: ProofCase[];
   research: ResearchFocus[];
-  services: ServiceTile[];
 }
 
 export interface ActiveClient {
@@ -160,29 +152,6 @@ export const siteCopy: SiteCopy = {
       constraints: ['Versioned memory snapshots', 'Replay-safe states', 'Decision auditability'],
       status: 'pilot'
     }
-  ],
-  services: [
-    {
-      title: 'Discovery + Systems Map',
-      summary:
-        'A practical mapping of current workflows, tools, and friction points before implementation.',
-      deliverables: ['Workflow map', 'Risk log', 'Priority roadmap'],
-      cadence: '2â€“4 weeks'
-    },
-    {
-      title: 'Assistant Integration Build',
-      summary:
-        'Develop production-ready assistant workflows with operational guardrails and onboarding documentation.',
-      deliverables: ['Tool contracts', 'Fallback matrix', 'Runbook'],
-      cadence: '4â€“8 weeks'
-    },
-    {
-      title: 'R&D Cohort Support',
-      summary:
-        'Experimental track for wearable, continuity, and ambient-capture work under review controls.',
-      deliverables: ['Experiment protocol', 'Evaluation artifacts', 'Decision summary'],
-      cadence: '3â€“6 weeks'
-    }
   ]
 };
 
@@ -208,4 +177,3 @@ export const activeClients: ActiveClient[] = [
     }
   }
 ];
-

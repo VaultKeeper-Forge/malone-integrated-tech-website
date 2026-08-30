@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { withBase } from '../lib/paths';
 import MaloneLens from '../components/ui/MaloneLens.astro';
+import { allPublicOffers, carePlans } from '../data/serviceData';
 
 interface Props {
   title: string;
@@ -28,13 +29,7 @@ const pageKind = normalizedPath === '/contact'
     ? 'WebPage'
     : 'CollectionPage';
 
-const serviceNames = [
-  'Integrated assistant systems',
-  'Business systems',
-  'Tool integration',
-  'Data and continuity',
-  'Applied AI solutions'
-];
+const serviceNames = allPublicOffers.map((offer) => offer.name);
 
 const researchNames = [
   'Wearable AI',
@@ -71,13 +66,16 @@ const schemaGraph: Record<string, unknown>[] = [
     knowsAbout: expertiseNames,
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
-      name: 'Integrated AI and business systems services',
-      itemListElement: serviceNames.map((name) => ({
+      name: 'Small business technology services',
+      itemListElement: allPublicOffers.map((offer) => ({
         '@type': 'Offer',
+        price: offer.priceMin,
+        priceCurrency: 'USD',
+        description: offer.priceLabel,
         itemOffered: {
           '@type': 'Service',
-          name,
-          serviceType: name,
+          name: offer.name,
+          serviceType: offer.name,
           areaServed: 'US'
         }
       }))
@@ -140,19 +138,52 @@ if (normalizedPath !== '/') {
 }
 
 if (normalizedPath === '/services') {
+  const catalogItems = [
+    ...allPublicOffers.map((offer) => ({
+      name: offer.name,
+      description: offer.summary,
+      priceLabel: offer.priceLabel,
+      priceMin: offer.priceMin,
+      priceMax: offer.priceMax
+    })),
+    ...carePlans.map((plan) => ({
+      name: plan.name,
+      description: plan.summary,
+      priceLabel: plan.priceLabel,
+      priceMin: plan.priceMin,
+      priceMax: undefined
+    }))
+  ];
+
   schemaGraph.push({
     '@type': 'ItemList',
     '@id': canonical + '#services',
     name: 'Malone Integrated Tech services',
-    itemListElement: serviceNames.map((name, index) => ({
+    itemListElement: catalogItems.map((offer, index) => ({
       '@type': 'ListItem',
       position: index + 1,
       item: {
         '@type': 'Service',
-        name,
+        name: offer.name,
+        description: offer.description,
         provider: { '@id': organizationId },
         areaServed: 'US',
-        serviceType: name
+        serviceType: offer.name,
+        offers: offer.priceMax
+          ? {
+              '@type': 'AggregateOffer',
+              lowPrice: offer.priceMin,
+              highPrice: offer.priceMax,
+              priceCurrency: 'USD',
+              offerCount: 1,
+              description: offer.priceLabel
+            }
+          : {
+              '@type': 'Offer',
+              price: offer.priceMin,
+              priceCurrency: 'USD',
+              description: offer.priceLabel
+            }
       }
     }))
   });
@@ -247,4 +278,3 @@ const structuredData = JSON.stringify({
     {(normalizedPath === '/' || normalizedPath === '/projects') && <MaloneLens />}
   </body>
 </html>
-

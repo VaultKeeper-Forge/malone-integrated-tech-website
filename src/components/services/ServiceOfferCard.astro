@@ -1,0 +1,41 @@
+---
+import type { ServiceOffer } from '../../data/serviceData';
+
+interface Props {
+  offer: ServiceOffer;
+  index: number;
+}
+
+const { offer, index } = Astro.props;
+const displayIndex = String(index + 1).padStart(2, '0');
+---
+
+<article class:list={['service-offer', { 'service-offer--featured': offer.featured }]} data-service-offer={offer.id}>
+  <div class="service-offer__header">
+    <span class="service-offer__index" aria-hidden="true">{displayIndex}</span>
+    {offer.featured && <span class="service-offer__flag">Strong starting point</span>}
+  </div>
+  <div class="service-offer__title-row">
+    <h3>{offer.name}</h3>
+    <p class="service-offer__price">{offer.priceLabel}</p>
+  </div>
+  <p class="service-offer__summary">{offer.summary}</p>
+  <dl class="service-offer__facts">
+    <div>
+      <dt>Best for</dt>
+      <dd>{offer.idealFor}</dd>
+    </div>
+    <div>
+      <dt>Typical timing</dt>
+      <dd>{offer.timeline}</dd>
+    </div>
+  </dl>
+  <div class="service-offer__included">
+    <p>Included</p>
+    <ul>
+      {offer.includes.map((item) => <li>{item}</li>)}
+    </ul>
+  </div>
+  {offer.note && <p class="service-offer__note">{offer.note}</p>}
+</article>
+

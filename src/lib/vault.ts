@@ -1,10 +1,11 @@
-import { siteCopy, type ProofCase, type ProcessStep, type ResearchFocus, type ServiceTile } from '../data/siteData';
+import { siteCopy, type ProofCase, type ProcessStep, type ResearchFocus } from '../data/siteData';
+import { allPublicOffers, type ServiceOffer } from '../data/serviceData';
 
 export interface VaultProofPayload {
   projects: ProofCase[];
   research: ResearchFocus[];
   process: ProcessStep[];
-  services: ServiceTile[];
+  services: ServiceOffer[];
 }
 
 export const vaultConnection = {
@@ -18,7 +19,7 @@ export const fetchVaultProofPayload = async (): Promise<VaultProofPayload> => {
     projects: siteCopy.proof,
     research: siteCopy.research,
     process: siteCopy.process,
-    services: siteCopy.services
+    services: allPublicOffers
   };
 };
 
