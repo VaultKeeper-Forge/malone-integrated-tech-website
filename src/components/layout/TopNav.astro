@@ -62,6 +62,13 @@ const clientSignInPath = 'https://malone-client-operations-platform.vercel.app/l
         sync();
       });
     });
+    menu.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || !menu.open) return;
+      event.preventDefault();
+      menu.open = false;
+      sync();
+      trigger?.focus();
+    });
     sync();
   });
 </script>

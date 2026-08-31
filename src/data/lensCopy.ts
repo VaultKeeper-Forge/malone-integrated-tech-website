@@ -641,6 +641,62 @@ lensPrototypeCopy.push(
   {
     key: 'projects-active-client-cta', region: 'proof', technical: 'View live work in progress',
     everyday: 'See the site being built'
+  },
+  {
+    key: 'home.system.horizon.status', region: 'proof', technical: 'LIVE PRODUCTION / OWNER-OPERATED',
+    everyday: 'OUR OWN LIVE BUSINESS SYSTEM'
+  },
+  {
+    key: 'home.system.horizon.summary', region: 'proof',
+    technical: 'A handmade leather business running on a custom public site with a private owner-side assistant and continuity layer behind it.',
+    everyday: 'We use Horizon Creations as a real working example of how a small business can connect its public website with private tools that help the owner keep the operation organized.'
+  },
+  {
+    key: 'home.system.horizon.current', region: 'proof',
+    technical: 'The production system connects product and inventory state, custom-work intake, social and contact routing, structured business records, and private assistant workflows while keeping the customer experience focused on the craft.',
+    everyday: 'Customers see a clean handmade-leather website. Behind it, the owner uses private tools to keep product information, business notes, project context, and communication organized.'
+  },
+  {
+    key: 'home.system.horizon.live-surface', region: 'proof',
+    technical: 'Live now: custom responsive website, honest product and inventory states, custom-work routing, social connections, and secure production deployment.',
+    everyday: 'The live site already shows current products, custom work, ways to get in touch, and the business\'s social channels.'
+  },
+  {
+    key: 'home.system.horizon.next', region: 'proof',
+    technical: 'Commerce is mapped but not activated. Shopify-backed checkout, inventory, shipping, returns, and order handling are the next gated phase.',
+    everyday: 'Online checkout comes next after inventory, shipping, returns, product details, and payment setup are confirmed.'
+  },
+  {
+    key: 'home.system.horizon.cta', region: 'proof', technical: 'VIEW LIVE PRODUCTION SYSTEM',
+    everyday: 'SEE HORIZON LIVE'
+  },
+  {
+    key: 'projects.system.horizon.status', region: 'proof', technical: 'LIVE PRODUCTION / OWNER-OPERATED',
+    everyday: 'OUR OWN LIVE BUSINESS SYSTEM'
+  },
+  {
+    key: 'projects.system.horizon.summary', region: 'proof',
+    technical: 'A handmade leather business running on a custom public site with a private owner-side assistant and continuity layer behind it.',
+    everyday: 'We use Horizon Creations as a real working example of how a small business can connect its public website with private tools that help the owner keep the operation organized.'
+  },
+  {
+    key: 'projects.system.horizon.current', region: 'proof',
+    technical: 'The production system connects product and inventory state, custom-work intake, social and contact routing, structured business records, and private assistant workflows while keeping the customer experience focused on the craft.',
+    everyday: 'Customers see a clean handmade-leather website. Behind it, the owner uses private tools to keep product information, business notes, project context, and communication organized.'
+  },
+  {
+    key: 'projects.system.horizon.live-surface', region: 'proof',
+    technical: 'Live now: custom responsive website, honest product and inventory states, custom-work routing, social connections, and secure production deployment.',
+    everyday: 'The live site already shows current products, custom work, ways to get in touch, and the business\'s social channels.'
+  },
+  {
+    key: 'projects.system.horizon.next', region: 'proof',
+    technical: 'Commerce is mapped but not activated. Shopify-backed checkout, inventory, shipping, returns, and order handling are the next gated phase.',
+    everyday: 'Online checkout comes next after inventory, shipping, returns, product details, and payment setup are confirmed.'
+  },
+  {
+    key: 'projects.system.horizon.cta', region: 'proof', technical: 'VIEW LIVE PRODUCTION SYSTEM',
+    everyday: 'SEE HORIZON LIVE'
   }
 );
 

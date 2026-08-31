@@ -54,9 +54,10 @@ test.describe('Red Barons active client feature', () => {
   test('image failure exposes the branded fallback safely', async ({ page }) => {
     await page.route('**/clients/red-barons/red-barons-wip-home.webp', (route) => route.fulfill({ status: 404, body: '' }));
     await page.goto('/projects');
-    await page.locator('.active-client-feature').scrollIntoViewIfNeeded();
-    await expect(page.locator('.active-client-feature__fallback')).toContainText('Red Barons Bit of Everything');
-    await expect(page.locator('.active-client-feature img')).toBeHidden();
+    const feature = page.locator('.active-client-feature');
+    await feature.scrollIntoViewIfNeeded();
+    await expect(feature.locator('.active-client-feature__fallback')).toContainText('Red Barons Bit of Everything');
+    await expect(feature.locator('img')).toBeHidden();
   });
 
   test('everyday Lens translates the active client copy on home and projects', async ({ page }) => {

@@ -39,21 +39,32 @@ export interface SiteCopy {
   research: ResearchFocus[];
 }
 
-export interface ActiveClient {
-  status: string;
+export type FeaturedWorkKind = 'active-client' | 'owner-operated';
+
+export type FeaturedWorkStage = 'live-wip' | 'active-build' | 'live-production' | 'complete';
+
+export interface FeaturedWork {
+  id: string;
+  kind: FeaturedWorkKind;
+  statusLabel: string;
+  stage: FeaturedWorkStage;
   name: string;
   location: string;
   summary: string;
   currentNote: string;
   liveSurfaceNote: string;
+  nextNote?: string;
   cta: string;
   url: string;
+  linkLabel: string;
   tags: string[];
   image: {
     src: string;
     alt: string;
     width: number;
     height: number;
+    label: string;
+    fallbackLabel: string;
   };
 }
 
@@ -155,9 +166,12 @@ export const siteCopy: SiteCopy = {
   ]
 };
 
-export const activeClients: ActiveClient[] = [
+export const featuredWork: FeaturedWork[] = [
   {
-    status: 'ACTIVE CLIENT / LIVE WIP',
+    id: 'red-barons',
+    kind: 'active-client',
+    statusLabel: 'ACTIVE CLIENT / LIVE WIP',
+    stage: 'live-wip',
     name: 'Red Barons Bit of Everything',
     location: 'Pine Grove, California',
     summary:
@@ -168,12 +182,51 @@ export const activeClients: ActiveClient[] = [
       'Live now: contact, directions, store information, and the in-store Google tour.',
     cta: 'View live work in progress',
     url: 'https://www.redbaronsbitofeverything.com/',
+    linkLabel: 'View the Red Barons Bit of Everything live work-in-progress website — opens in a new tab.',
     tags: ['client website', 'small business', 'online showroom'],
     image: {
       src: '/clients/red-barons/red-barons-wip-home.webp',
       alt: 'Red Barons Bit of Everything work-in-progress homepage showing the shop logo and Coming Soon message.',
       width: 1440,
-      height: 900
+      height: 900,
+      label: 'LIVE SURFACE',
+      fallbackLabel: 'LIVE CLIENT WEBSITE'
+    }
+  },
+  {
+    id: 'horizon-creations',
+    kind: 'owner-operated',
+    statusLabel: 'LIVE PRODUCTION / OWNER-OPERATED',
+    stage: 'live-production',
+    name: 'Horizon Creations',
+    location: 'Northern California',
+    summary:
+      'A handmade leather business running on a custom public site with a private owner-side assistant and continuity layer behind it.',
+    currentNote:
+      'The production system connects product and inventory state, custom-work intake, social and contact routing, structured business records, and private assistant workflows while keeping the customer experience focused on the craft.',
+    liveSurfaceNote:
+      'Live now: custom responsive website, honest product and inventory states, custom-work routing, social connections, and secure production deployment.',
+    nextNote:
+      'Commerce is mapped but not activated. Shopify-backed checkout, inventory, shipping, returns, and order handling are the next gated phase.',
+    cta: 'VIEW LIVE PRODUCTION SYSTEM',
+    url: 'https://horizoncreations.art/',
+    linkLabel: 'View the live Horizon Creations production website — opens in a new tab.',
+    tags: [
+      'owner-operated',
+      'custom web',
+      'private assistant',
+      'continuity',
+      'business systems',
+      'social routing',
+      'ecommerce next'
+    ],
+    image: {
+      src: '/systems/horizon/horizon-creations-live.webp',
+      alt: 'Horizon Creations handmade leather website running as a live Malone owner-operated system.',
+      width: 1035,
+      height: 846,
+      label: 'LIVE PRODUCTION',
+      fallbackLabel: 'OWNER-OPERATED SYSTEM'
     }
   }
 ];

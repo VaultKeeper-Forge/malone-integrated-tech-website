@@ -7,7 +7,9 @@ import HeroBanner from '../components/sections/HeroBanner.astro';
 import CapabilityGrid from '../components/sections/CapabilityGrid.astro';
 import ProcessSection from '../components/sections/ProcessSection.astro';
 import ContactCTA from '../components/sections/ContactCTA.astro';
-import { siteCopy } from '../data/siteData';
+import ProofSection from '../components/sections/ProofSection.astro';
+import FeaturedWorkFeature from '../components/ui/FeaturedWorkFeature.astro';
+import { featuredWork, siteCopy } from '../data/siteData';
 ---
 
 <BaseLayout
@@ -69,6 +71,21 @@ import { siteCopy } from '../data/siteData';
             <span class="research-node__corner" aria-hidden="true"></span>
           </article>
         ))}
+      </div>
+    </section>
+
+    <section id="systems-in-practice" class="section-shell ultra-section" data-section="systems-in-practice">
+      <SectionHeading
+        number="04"
+        title="Current Work / Systems in Practice"
+        heading="Live work, honestly staged."
+        description="Client work appears first. Then comes a real owner-operated system, followed by representative patterns and prototypes that remain clearly labeled."
+      />
+      <FeaturedWorkFeature work={featuredWork[0]} />
+      <FeaturedWorkFeature work={featuredWork[1]} />
+      <div class="current-work-proof">
+        <p>Representative systems and prototypes</p>
+        <ProofSection items={siteCopy.proof} />
       </div>
     </section>
 
