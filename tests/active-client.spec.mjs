@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-const routes = ['/', '/projects'];
+const routes = ['/projects'];
 const mobileWidths = [320, 360, 390, 412, 430];
 const externalUrl = 'https://www.redbaronsbitofeverything.com/';
 
 test.describe('Red Barons active client feature', () => {
   for (const route of routes) {
-    test(`${route} places active client work first with the locked public contract`, async ({ page }) => {
+    test(`${route} presents active client work with the locked public contract`, async ({ page }) => {
       await page.goto(route);
       const feature = page.locator('.active-client-feature');
       await expect(feature).toBeVisible();
@@ -59,7 +59,7 @@ test.describe('Red Barons active client feature', () => {
     await expect(page.locator('.active-client-feature img')).toBeHidden();
   });
 
-  test('everyday Lens translates the active client copy on home and projects', async ({ page }) => {
+  test('everyday Lens translates the active client copy on projects', async ({ page }) => {
     for (const route of routes) {
       await page.goto(route);
       await page.locator('.active-client-feature').scrollIntoViewIfNeeded();
