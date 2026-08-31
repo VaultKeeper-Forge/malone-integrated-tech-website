@@ -7,12 +7,21 @@ import HeroBanner from '../components/sections/HeroBanner.astro';
 import CapabilityGrid from '../components/sections/CapabilityGrid.astro';
 import ProcessSection from '../components/sections/ProcessSection.astro';
 import ContactCTA from '../components/sections/ContactCTA.astro';
-import { siteCopy } from '../data/siteData';
+import {
+  homepageClientSteps,
+  homepageOutcomes,
+  homepageServicePaths,
+  siteCopy
+} from '../data/siteData';
+import { withBase } from '../lib/paths';
+
+const servicesPath = withBase('/services');
+const projectsPath = withBase('/projects');
 ---
 
 <BaseLayout
-  title="AI Assistant Systems for Small Businesses | Malone Integrated Tech"
-  description="Malone Integrated Tech builds practical AI assistant systems, tool integrations, and continuity-focused workflows for people and small businesses."
+  title="Technology Help & Small Business Systems | Malone Integrated Tech"
+  description="Malone Integrated Tech provides local technology help and builds connected websites, workflows, and assistant systems for homes and small businesses."
   currentPath="/"
 >
   <TopNav />
@@ -25,9 +34,93 @@ import { siteCopy } from '../data/siteData';
       <HeroBanner />
     </section>
 
-    <section id="what-we-build" class="section-shell ultra-section" data-section="what-we-build">
+    <section id="services-paths" class="section-shell ultra-section customer-section" data-section="services-paths">
       <SectionHeading
         number="01"
+        title="Services & Starting Prices"
+        heading="Start with the smallest useful move"
+        description="Choose local hands-on help, define the right first step, or build a connected system around the work that needs to move."
+      />
+      <div class="homepage-paths">
+        {homepageServicePaths.map((path, index) => (
+          <article
+            class="homepage-path reveal"
+            data-home-service-path={path.id}
+            data-source-offer-ids={path.sourceOfferIds.join(',')}
+            style={`--delay: ${index * 80}ms`}
+          >
+            <span class="panel-corner panel-corner--tl" aria-hidden="true"></span>
+            <span class="panel-corner panel-corner--br" aria-hidden="true"></span>
+            <span class="homepage-path__index">0{index + 1}</span>
+            <h3>{path.title}</h3>
+            <p class="homepage-path__price" data-home-service-price>{path.priceLabel}</p>
+            <p>{path.meaning}</p>
+          </article>
+        ))}
+      </div>
+      <div class="homepage-route reveal">
+        <a href={servicesPath} class="text-link" data-cta="homepage_services">
+          Compare all services and prices <span aria-hidden="true">-&gt;</span>
+        </a>
+      </div>
+    </section>
+
+    <section id="customer-outcomes" class="section-shell ultra-section customer-section" data-section="customer-outcomes">
+      <SectionHeading
+        number="02"
+        title="Customer Outcomes"
+        heading="Less searching. Fewer broken handoffs. Clearer ownership."
+        description="The goal is practical: make important work easier to find, move, review, and hand off."
+      />
+      <div class="outcome-grid">
+        {homepageOutcomes.map((outcome, index) => (
+          <article class="outcome-card reveal" style={`--delay: ${index * 80}ms`}>
+            <span class="outcome-card__index">0{index + 1}</span>
+            <h3>{outcome.title}</h3>
+            <p>{outcome.detail}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section id="working-with-malone" class="section-shell ultra-section customer-section" data-section="working-with-malone">
+      <SectionHeading
+        number="03"
+        title="Working Together"
+        heading="How clients work with Malone"
+        description="The work stays understandable from the first problem through the final handoff."
+      />
+      <ol class="client-step-grid">
+        {homepageClientSteps.map((step, index) => (
+          <li class="client-step reveal" style={`--delay: ${index * 70}ms`}>
+            <span class="client-step__index">{String(index + 1).padStart(2, '0')}</span>
+            <div>
+              <h3>{step.title}</h3>
+              <p>{step.detail}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section id="projects-proof" class="section-shell ultra-section ultra-section--compact" data-section="projects-proof">
+      <article class="proof-route reveal">
+        <span class="panel-corner panel-corner--tl" aria-hidden="true"></span>
+        <span class="panel-corner panel-corner--br" aria-hidden="true"></span>
+        <div>
+          <p class="eyebrow">Projects & Proof</p>
+          <h2>See current work and honest project status</h2>
+          <p>Live client work, pilots, and research are labeled separately so you can see what is active, what is being tested, and what remains exploratory.</p>
+        </div>
+        <a href={projectsPath} class="signal-button" data-cta="homepage_projects">
+          View projects & proof <span aria-hidden="true">+</span>
+        </a>
+      </article>
+    </section>
+
+    <section id="what-we-build" class="section-shell ultra-section" data-section="what-we-build">
+      <SectionHeading
+        number="05"
         title="What We Build"
         heading="Capabilities engineered for real workflows"
         description="No generic assistant layer. We build systems around how people and small teams already work, then make the connections durable."
@@ -37,7 +130,7 @@ import { siteCopy } from '../data/siteData';
 
     <section id="how-it-works" class="section-shell ultra-section ultra-section--process" data-section="how-it-works">
       <SectionHeading
-        number="02"
+        number="06"
         title="How It Works"
         heading="How the system moves"
         mobileHeading="How the system moves"
@@ -48,7 +141,7 @@ import { siteCopy } from '../data/siteData';
 
     <section id="research" class="section-shell ultra-section" data-section="research">
       <SectionHeading
-        number="03"
+        number="07"
         title="Research & Development"
         heading="Research with engineering discipline"
         description="Focused investigation into how assistants can stay present, useful, and accountable across longer human relationships."

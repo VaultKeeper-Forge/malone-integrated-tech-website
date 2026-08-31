@@ -226,6 +226,75 @@ test.describe('Malone consumer surface', () => {
     expect(faults).toEqual([]);
   });
 
+  test('homepage grounds the customer path and derives its price previews from Services', async ({ page }) => {
+    const faults = observe(page);
+    await page.goto('/', { waitUntil: 'networkidle' });
+
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Technology that works together—and keeps the work moving.'
+    );
+    await expect(page.locator('[data-cta="hero_primary"]')).toHaveText(
+      /See services & starting prices/
+    );
+    await expect(page.locator('[data-cta="hero_primary"]')).toHaveAttribute('href', '/services');
+    await expect(page.locator('[data-cta="hero_secondary"]')).toHaveText(/Request a fit check/);
+    await expect(page.locator('[data-cta="hero_secondary"]')).toHaveAttribute('href', '/contact');
+    await expect(page.locator('[data-home-service-path]')).toHaveCount(3);
+    await expect(page.getByRole('heading', { name: 'How clients work with Malone' })).toBeVisible();
+    await expect(page.getByRole('link', { name: /view projects & proof/i }))
+      .toHaveAttribute('href', '/projects');
+
+    const homepagePrices = await page.locator('[data-home-service-path]').evaluateAll((paths) =>
+      Object.fromEntries(paths.map((path) => [
+        path.getAttribute('data-home-service-path'),
+        path.querySelector('[data-home-service-price]')?.textContent?.trim() || ''
+      ]))
+    );
+
+    await page.goto('/services', { waitUntil: 'networkidle' });
+    const servicePrice = async (id) => (await page
+      .locator(`[data-service-offer="${id}"] .service-offer__price`)
+      .textContent())?.trim() || '';
+    const canonical = {
+      local: await servicePrice('local-onsite-it-support'),
+      fitCheck: await servicePrice('fit-check'),
+      systemsMap: await servicePrice('systems-map'),
+      digitalFrontDoor: await servicePrice('digital-front-door')
+    };
+
+    expect(homepagePrices['local-help']).toBe(canonical.local);
+    expect(homepagePrices['right-first-move'])
+      .toBe(`${canonical.fitCheck} or ${canonical.systemsMap} Systems Map`);
+    expect(homepagePrices['build-or-connect']).toBe(`From ${canonical.digitalFrontDoor}`);
+
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await expect(page.locator('main')).not.toContainText(
+      /client portal is currently live|all project messages, files, questionnaires|assistant and portal currently share|production client access currently enforces MFA|administrative access is currently hardware-key protected/i
+    );
+    expect(faults).toEqual([]);
+  });
+
+  test('Malone Lens stays synchronized with the grounded homepage copy', async ({ page }) => {
+    const faults = observe(page);
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.getByRole('button', {
+      name: /open the malone integrated tech lens for everyday wording/i
+    }).click();
+    await page.getByRole('button', { name: 'Everyday User View' }).click();
+
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Technology that works together—and helps you keep going.'
+    );
+    await expect(page.getByRole('heading', { name: 'How we work with you' })).toBeVisible();
+    await expect(page.getByRole('link', { name: /see every service and starting price/i }))
+      .toHaveAttribute('href', '/services');
+    await page.getByRole('button', { name: /return this page to technical wording/i }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      'Technology that works together—and keeps the work moving.'
+    );
+    expect(faults).toEqual([]);
+  });
+
   test('local support routes into an appointment-specific intake', async ({ page }) => {
     const faults = observe(page);
     await page.goto('/services', { waitUntil: 'networkidle' });
