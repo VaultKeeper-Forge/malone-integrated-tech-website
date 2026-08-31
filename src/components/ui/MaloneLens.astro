@@ -486,24 +486,22 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
   .mit-lens__trigger {
     position: fixed;
     z-index: 190;
-    right: 0;
-    top: 50dvh;
+    right: clamp(0.75rem, 1.6vw, 1.5rem);
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
     display: flex;
     align-items: center;
-    gap: 0.7rem;
-    width: 168px;
-    min-height: 58px;
-    padding: 0.55rem 0.85rem 0.55rem 0.7rem;
+    justify-content: center;
+    width: 48px;
+    min-height: 48px;
+    padding: 0;
     color: #f5f8fc;
     background:
       linear-gradient(115deg, rgba(47, 147, 255, 0.15), transparent 38%),
       linear-gradient(180deg, rgba(22, 30, 39, 0.98), rgba(6, 10, 15, 0.98));
     border: 1px solid rgba(116, 157, 203, 0.44);
-    border-right: 0;
-    border-radius: 10px 0 0 10px;
-    box-shadow: -12px 0 34px rgba(0, 0, 0, 0.42);
+    border-radius: 0;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
     cursor: pointer;
-    transform: translateY(-50%);
     transition: transform 220ms ease, opacity 180ms ease, border-color 180ms ease;
   }
 
@@ -533,9 +531,13 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
   }
 
   .mit-lens__trigger-copy {
-    display: grid;
-    text-align: left;
-    text-transform: uppercase;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .mit-lens__trigger-copy strong {
@@ -556,7 +558,7 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
 
   .mit-lens[data-state='open'] .mit-lens__trigger {
     opacity: 0.42;
-    transform: translate(calc(100% - 47px), -50%);
+    transform: none;
   }
 
   .mit-lens[data-state='open'] .mit-lens__trigger:hover,
@@ -874,15 +876,13 @@ const copyPayload = JSON.stringify(lensPrototypeCopy).replace(/</g, '\\u003c');
 
   @media (max-width: 700px) {
     .mit-lens__trigger {
-      top: 62dvh;
-      flex-direction: column;
-      gap: 0.45rem;
-      width: 62px;
-      min-height: 112px;
-      padding: 0.65rem 0.4rem;
+      top: max(0.7rem, env(safe-area-inset-top));
+      right: calc(4.25rem + env(safe-area-inset-right));
+      bottom: auto;
+      width: 48px;
+      min-height: 48px;
+      padding: 0;
     }
-    .mit-lens__trigger-copy { text-align: center; }
-    .mit-lens__trigger-copy small { max-width: 48px; font-size: 0.46rem; }
     .mit-lens__aperture {
       top: 25dvh;
       right: 9px;

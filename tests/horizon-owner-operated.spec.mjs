@@ -9,6 +9,13 @@ function horizonFeature(page) {
   return page.locator('[data-featured-work="horizon-creations"]');
 }
 
+function overlaps(first, second) {
+  return first.x < second.x + second.width &&
+    first.x + first.width > second.x &&
+    first.y < second.y + second.height &&
+    first.y + first.height > second.y;
+}
+
 test.describe('Horizon Creations owner-operated production system', () => {
   for (const route of routes) {
     test(`${route} presents Horizon after client work with its locked public meaning`, async ({ page }) => {
@@ -79,6 +86,32 @@ test.describe('Horizon Creations owner-operated production system', () => {
       await expect(toggle).toHaveAttribute('aria-expanded', 'false');
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
       await page.close();
+    }
+  });
+
+  test('the Lens trigger remains available without covering Horizon copy', async ({ page }) => {
+    for (const route of routes) {
+      await page.goto(route);
+      const feature = horizonFeature(page);
+      await feature.scrollIntoViewIfNeeded();
+      const trigger = page.getByRole('button', {
+        name: /open the malone integrated tech lens for everyday wording/i
+      });
+      const triggerBox = await trigger.boundingBox();
+      expect(triggerBox).not.toBeNull();
+      const protectedCopy = [
+        feature.locator('h3'),
+        feature.locator('.featured-work-feature__summary'),
+        feature.locator('.featured-work-feature__note'),
+        feature.locator('.featured-work-feature__live'),
+        feature.locator('.featured-work-feature__next'),
+        feature.locator('.featured-work-feature__cta')
+      ];
+      for (const copy of protectedCopy) {
+        const copyBox = await copy.boundingBox();
+        expect(copyBox).not.toBeNull();
+        expect(overlaps(triggerBox, copyBox)).toBe(false);
+      }
     }
   });
 
