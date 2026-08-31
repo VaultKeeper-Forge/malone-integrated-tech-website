@@ -1,5 +1,6 @@
 ---
 import type { ServiceOffer } from '../../data/serviceData';
+import { withBase } from '../../lib/paths';
 
 interface Props {
   offer: ServiceOffer;
@@ -37,5 +38,9 @@ const displayIndex = String(index + 1).padStart(2, '0');
     </ul>
   </div>
   {offer.note && <p class="service-offer__note">{offer.note}</p>}
+  {offer.cta && (
+    <a class="text-link service-offer__cta" href={withBase(offer.cta.href)}>
+      {offer.cta.label} <span aria-hidden="true">-&gt;</span>
+    </a>
+  )}
 </article>
-

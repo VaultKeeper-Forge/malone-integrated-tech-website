@@ -75,6 +75,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
         <span>What can we help with? <b>Required</b></span>
         <select name="category" required>
           <option value="">Select a category</option>
+          <option value="Local on-site IT support">Local on-site IT support</option>
           <option value="Integrated assistant systems">Integrated assistant systems</option>
           <option value="Business systems">Business systems</option>
           <option value="Tool integration">Tool integration</option>
@@ -99,7 +100,12 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
       <small data-error-for="message"></small>
     </label>
 
-    <label class="meeting-option">
+    <div class="local-appointment-note" data-local-appointment-note hidden>
+      <strong>This is an appointment request.</strong>
+      <p>Include the service town or ZIP code, the equipment involved, and what is not working. Malone will confirm the service area, any travel charge, and an available arrival window before the visit.</p>
+    </div>
+
+    <label class="meeting-option" data-meeting-option>
       <input type="checkbox" name="meetingRequested" value="yes" />
       <span class="meeting-option__control" aria-hidden="true"><i></i></span>
       <span class="meeting-option__icon" aria-hidden="true">
@@ -160,6 +166,13 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
     const confirmation = shell?.querySelector('[data-confirmation]') as HTMLElement | null;
     const bookingButton = shell?.querySelector('[data-booking-button]') as HTMLAnchorElement | null;
     const sendAnother = shell?.querySelector('[data-send-another]') as HTMLButtonElement | null;
+    const category = form?.elements.namedItem('category') as HTMLSelectElement | null;
+    const messageField = form?.elements.namedItem('message') as HTMLTextAreaElement | null;
+    const meetingOption = shell?.querySelector('[data-meeting-option]') as HTMLLabelElement | null;
+    const meetingRequested = form?.elements.namedItem('meetingRequested') as HTMLInputElement | null;
+    const localAppointmentNote = shell?.querySelector('[data-local-appointment-note]') as HTMLElement | null;
+    const defaultMessagePlaceholder = messageField?.placeholder ?? '';
+    const localSupportCategory = 'Local on-site IT support';
     const isAllowedMessageOrigin = (origin: string) => {
       try {
         const source = new URL(origin);
@@ -188,6 +201,21 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
       const startedAt = form?.querySelector('[data-started-at]') as HTMLInputElement | null;
       if (requestId) requestId.value = makeRequestId();
       if (startedAt) startedAt.value = String(Date.now());
+    };
+
+    const syncIntakeMode = () => {
+      const isLocalAppointment = category?.value === localSupportCategory;
+      if (localAppointmentNote) localAppointmentNote.hidden = !isLocalAppointment;
+      if (meetingOption) meetingOption.hidden = isLocalAppointment;
+      if (meetingRequested) {
+        if (isLocalAppointment) meetingRequested.checked = false;
+        meetingRequested.disabled = isLocalAppointment;
+      }
+      if (messageField) {
+        messageField.placeholder = isLocalAppointment
+          ? 'Tell us your town or ZIP code, what equipment is involved, what is not working, and the appointment times that usually work for you.'
+          : defaultMessagePlaceholder;
+      }
     };
 
     const setState = (next: 'input' | 'routing' | 'confirmed' | 'error', message = '') => {
@@ -241,6 +269,8 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
         }
       });
     });
+
+    category?.addEventListener('change', syncIntakeMode);
 
     form?.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -328,6 +358,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
       }
 
       form.reset();
+      syncIntakeMode();
       resetEnvelope();
     });
 
@@ -336,10 +367,16 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
       if (form) form.hidden = false;
       pendingSubmission = null;
       setState('input', '');
+      syncIntakeMode();
       resetEnvelope();
       (form?.elements.namedItem('name') as HTMLInputElement | null)?.focus();
     });
 
+    const requestedCategory = new URLSearchParams(window.location.search).get('category');
+    if (category && requestedCategory === 'local-onsite-support') {
+      category.value = localSupportCategory;
+    }
+    syncIntakeMode();
     resetEnvelope();
   </script>
 </div>

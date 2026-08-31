@@ -1,5 +1,7 @@
 ﻿export type Severity = 'production' | 'pilot' | 'research';
 
+import { allPublicOffers } from './serviceData';
+
 export interface Capability {
   title: string;
   description: string;
@@ -30,14 +32,115 @@ export interface SiteCopy {
   brand: string;
   domain: string;
   hero: {
+    eyebrow: string;
     line: string;
     detail: string;
+    support: string;
+    primaryAction: string;
+    secondaryAction: string;
+    principles: string[];
   };
   capabilities: Capability[];
   process: ProcessStep[];
   proof: ProofCase[];
   research: ResearchFocus[];
 }
+
+export interface HomepageServicePath {
+  id: string;
+  title: string;
+  priceLabel: string;
+  meaning: string;
+  sourceOfferIds: string[];
+}
+
+export interface HomepageOutcome {
+  title: string;
+  detail: string;
+}
+
+export interface HomepageClientStep {
+  title: string;
+  detail: string;
+}
+
+const offerById = new Map(allPublicOffers.map((offer) => [offer.id, offer]));
+
+function requireOffer(id: string) {
+  const offer = offerById.get(id);
+  if (!offer) throw new Error(`Missing homepage service source: ${id}`);
+  return offer;
+}
+
+const localSupport = requireOffer('local-onsite-it-support');
+const fitCheck = requireOffer('fit-check');
+const systemsMap = requireOffer('systems-map');
+const digitalFrontDoor = requireOffer('digital-front-door');
+
+export const homepageServicePaths: HomepageServicePath[] = [
+  {
+    id: 'local-help',
+    title: 'Local technology help',
+    priceLabel: localSupport.priceLabel,
+    meaning:
+      'Hands-on help for computers, printers, Wi-Fi, devices, accounts, backups, and setup.',
+    sourceOfferIds: [localSupport.id]
+  },
+  {
+    id: 'right-first-move',
+    title: 'Find the right first move',
+    priceLabel: `${fitCheck.priceLabel} or ${systemsMap.priceLabel} Systems Map`,
+    meaning: 'Define the problem before buying a larger build.',
+    sourceOfferIds: [fitCheck.id, systemsMap.id]
+  },
+  {
+    id: 'build-or-connect',
+    title: 'Build or connect the operation',
+    priceLabel: `From ${digitalFrontDoor.priceLabel}`,
+    meaning:
+      'Websites, forms, workflows, assistants, portals, and connected operating systems.',
+    sourceOfferIds: [digitalFrontDoor.id]
+  }
+];
+
+export const homepageOutcomes: HomepageOutcome[] = [
+  {
+    title: 'Keep the work findable',
+    detail:
+      'Organize the files, decisions, requests, and operating notes the work depends on.'
+  },
+  {
+    title: 'Make the tools pass information correctly',
+    detail:
+      'Connect forms, calendars, email, websites, and approved automations around the workflow already in use.'
+  },
+  {
+    title: 'Keep people in control',
+    detail:
+      'Use clear ownership, review points, and recovery paths instead of invisible automation.'
+  }
+];
+
+export const homepageClientSteps: HomepageClientStep[] = [
+  {
+    title: 'Tell us what is not working.',
+    detail: 'Start with the immediate problem, the tools involved, and the useful outcome.'
+  },
+  {
+    title: 'See the boundary before work begins.',
+    detail:
+      'Malone confirms the scope, starting price, responsibilities, and known third-party costs in writing.'
+  },
+  {
+    title: 'Review visible checkpoints.',
+    detail: 'Consequential changes and scope expansion require clear review and approval.'
+  },
+  {
+    title: 'Own the result.',
+    detail:
+      'Receive the approved deliverables, account ownership, and practical operating notes needed for handoff.'
+  }
+];
 
 export interface ActiveClient {
   status: string;
@@ -61,9 +164,15 @@ export const siteCopy: SiteCopy = {
   brand: 'Malone Integrated Tech',
   domain: 'maloneintegratedtech.com',
   hero: {
-    line: 'Integrated Assistant Systems for People and Small Businesses',
+    eyebrow: 'Technology systems for homes and small businesses',
+    line: 'Technology that works together—and keeps the work moving.',
     detail:
-      'From context capture to continuity-aware action, we build integrated assistant systems for practical people-first workflows.'
+      'Malone Integrated Tech solves local technology problems and builds connected websites, workflows, and assistant systems for people and small businesses.',
+    support:
+      'From an on-site support visit to a connected business system, we start with the smallest useful move and expand only when the next layer earns its place.',
+    primaryAction: 'See services & starting prices',
+    secondaryAction: 'Request a fit check',
+    principles: ['Clear scope', 'Human approval', 'Accounts you own']
   },
   capabilities: [
     {

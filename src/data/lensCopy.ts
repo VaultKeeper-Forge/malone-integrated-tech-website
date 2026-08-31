@@ -1,24 +1,262 @@
 export interface LensCopyEntry {
   key: string;
-  region: 'navigation' | 'hero' | 'capabilities' | 'process' | 'research' | 'proof' | 'contact' | 'footer';
+  region: 'navigation' | 'hero' | 'services' | 'outcomes' | 'working' | 'capabilities' | 'process' | 'research' | 'proof' | 'contact' | 'footer';
   technical: string;
   everyday: string;
 }
 
 export const lensPrototypeCopy: LensCopyEntry[] = [
   {
+    key: 'home.hero.eyebrow',
+    region: 'hero',
+    technical: 'Technology systems for homes and small businesses',
+    everyday: 'Technology help and connected systems for homes and small businesses'
+  },
+  {
     key: 'home.hero.heading',
     region: 'hero',
-    technical: 'Integrated Assistant Systems for People and Small Businesses',
-    everyday: 'AI assistants that make everyday work easier'
+    technical: 'Technology that works together—and keeps the work moving.',
+    everyday: 'Technology that works together—and helps you keep going.'
   },
   {
     key: 'home.hero.detail',
     region: 'hero',
     technical:
-      'From context capture to continuity-aware action, we build integrated assistant systems for practical people-first workflows.',
+      'Malone Integrated Tech solves local technology problems and builds connected websites, workflows, and assistant systems for people and small businesses.',
     everyday:
-      'We connect the information, tools, and follow-through your work depends on, so your assistant can help without making you start over.'
+      'We solve everyday technology problems and build websites, workflows, and assistant tools for people and small businesses.'
+  },
+  {
+    key: 'home.hero.support',
+    region: 'hero',
+    technical:
+      'From an on-site support visit to a connected business system, we start with the smallest useful move and expand only when the next layer earns its place.',
+    everyday:
+      'Start with one useful fix. Add more only when it is worth it.'
+  },
+  {
+    key: 'home.services.eyebrow',
+    region: 'services',
+    technical: 'Services & Starting Prices',
+    everyday: 'Ways we can help and what they start at'
+  },
+  {
+    key: 'home.services.heading',
+    region: 'services',
+    technical: 'Start with the smallest useful move',
+    everyday: 'Choose the simplest useful place to begin'
+  },
+  {
+    key: 'home.services.detail',
+    region: 'services',
+    technical:
+      'Choose local hands-on help, define the right first step, or build a connected system around the work that needs to move.',
+    everyday:
+      'Get help in person, figure out the right first step, or build a system that connects the work.'
+  },
+  {
+    key: 'home.services.local.heading',
+    region: 'services',
+    technical: 'Local technology help',
+    everyday: 'Hands-on technology help nearby'
+  },
+  {
+    key: 'home.services.local.detail',
+    region: 'services',
+    technical:
+      'Hands-on help for computers, printers, Wi-Fi, devices, accounts, backups, and setup.',
+    everyday:
+      'Get in-person help with computers, printers, Wi-Fi, devices, accounts, backups, and setup.'
+  },
+  {
+    key: 'home.services.first-move.heading',
+    region: 'services',
+    technical: 'Find the right first move',
+    everyday: 'Figure out what to do first'
+  },
+  {
+    key: 'home.services.first-move.detail',
+    region: 'services',
+    technical: 'Define the problem before buying a larger build.',
+    everyday: 'Understand the problem before paying for a bigger project.'
+  },
+  {
+    key: 'home.services.build.heading',
+    region: 'services',
+    technical: 'Build or connect the operation',
+    everyday: 'Build or connect the way the business runs'
+  },
+  {
+    key: 'home.services.build.detail',
+    region: 'services',
+    technical:
+      'Websites, forms, workflows, assistants, portals, and connected operating systems.',
+    everyday:
+      'Build websites, forms, workflows, assistants, private workspaces, and connected business systems.'
+  },
+  {
+    key: 'home.services.action',
+    region: 'services',
+    technical: 'Compare all services and prices',
+    everyday: 'See every service and starting price'
+  },
+  {
+    key: 'home.outcomes.eyebrow',
+    region: 'outcomes',
+    technical: 'Customer Outcomes',
+    everyday: 'What gets better'
+  },
+  {
+    key: 'home.outcomes.heading',
+    region: 'outcomes',
+    technical: 'Less searching. Fewer broken handoffs. Clearer ownership.',
+    everyday: 'Find things faster. Lose fewer details. Know who owns what.'
+  },
+  {
+    key: 'home.outcomes.detail',
+    region: 'outcomes',
+    technical:
+      'The goal is practical: make important work easier to find, move, review, and hand off.',
+    everyday:
+      'Make important work easier to find, complete, check, and pass to the next person.'
+  },
+  {
+    key: 'home.outcomes.findable.heading',
+    region: 'outcomes',
+    technical: 'Keep the work findable',
+    everyday: 'Keep important work easy to find'
+  },
+  {
+    key: 'home.outcomes.findable.detail',
+    region: 'outcomes',
+    technical:
+      'Organize the files, decisions, requests, and operating notes the work depends on.',
+    everyday:
+      'Keep the files, decisions, requests, and notes together so people can find them.'
+  },
+  {
+    key: 'home.outcomes.handoffs.heading',
+    region: 'outcomes',
+    technical: 'Make the tools pass information correctly',
+    everyday: 'Help your tools share the right information'
+  },
+  {
+    key: 'home.outcomes.handoffs.detail',
+    region: 'outcomes',
+    technical:
+      'Connect forms, calendars, email, websites, and approved automations around the workflow already in use.',
+    everyday:
+      'Connect forms, calendars, email, websites, and approved automations around the way you already work.'
+  },
+  {
+    key: 'home.outcomes.control.heading',
+    region: 'outcomes',
+    technical: 'Keep people in control',
+    everyday: 'Keep people in charge'
+  },
+  {
+    key: 'home.outcomes.control.detail',
+    region: 'outcomes',
+    technical:
+      'Use clear ownership, review points, and recovery paths instead of invisible automation.',
+    everyday:
+      'Make ownership, check-ins, and recovery clear instead of hiding decisions inside automation.'
+  },
+  {
+    key: 'home.working.eyebrow',
+    region: 'working',
+    technical: 'Working Together',
+    everyday: 'What working together looks like'
+  },
+  {
+    key: 'home.working.heading',
+    region: 'working',
+    technical: 'How clients work with Malone',
+    everyday: 'How we work with you'
+  },
+  {
+    key: 'home.working.detail',
+    region: 'working',
+    technical: 'The work stays understandable from the first problem through the final handoff.',
+    everyday: 'You can follow the work from the first problem to the final handoff.'
+  },
+  {
+    key: 'home.working.problem.heading',
+    region: 'working',
+    technical: 'Tell us what is not working.',
+    everyday: 'Tell us where things are getting stuck.'
+  },
+  {
+    key: 'home.working.problem.detail',
+    region: 'working',
+    technical: 'Start with the immediate problem, the tools involved, and the useful outcome.',
+    everyday: 'Share the problem, the tools involved, and what would make things better.'
+  },
+  {
+    key: 'home.working.boundary.heading',
+    region: 'working',
+    technical: 'See the boundary before work begins.',
+    everyday: 'Know the boundary before work starts.'
+  },
+  {
+    key: 'home.working.boundary.detail',
+    region: 'working',
+    technical:
+      'Malone confirms the scope, starting price, responsibilities, and known third-party costs in writing.',
+    everyday:
+      'We put the scope, starting price, responsibilities, and known outside costs in writing.'
+  },
+  {
+    key: 'home.working.checkpoints.heading',
+    region: 'working',
+    technical: 'Review visible checkpoints.',
+    everyday: 'Review clear checkpoints.'
+  },
+  {
+    key: 'home.working.checkpoints.detail',
+    region: 'working',
+    technical: 'Consequential changes and scope expansion require clear review and approval.',
+    everyday: 'Important changes and added work need clear review and approval.'
+  },
+  {
+    key: 'home.working.ownership.heading',
+    region: 'working',
+    technical: 'Own the result.',
+    everyday: 'Keep what was built for you.'
+  },
+  {
+    key: 'home.working.ownership.detail',
+    region: 'working',
+    technical:
+      'Receive the approved deliverables, account ownership, and practical operating notes needed for handoff.',
+    everyday:
+      'Receive the approved work, ownership of your accounts, and useful notes for taking over.'
+  },
+  {
+    key: 'home.projects-route.eyebrow',
+    region: 'proof',
+    technical: 'Projects & Proof',
+    everyday: 'Work and examples'
+  },
+  {
+    key: 'home.projects-route.heading',
+    region: 'proof',
+    technical: 'See current work and honest project status',
+    everyday: 'See what is active, being tested, or still being explored'
+  },
+  {
+    key: 'home.projects-route.detail',
+    region: 'proof',
+    technical:
+      'Live client work, pilots, and research are labeled separately so you can see what is active, what is being tested, and what remains exploratory.',
+    everyday:
+      'We label client work, small trials, and research clearly so you know what is ready and what is still being explored.'
+  },
+  {
+    key: 'home.projects-route.action',
+    region: 'proof',
+    technical: 'View projects & proof',
+    everyday: 'See projects and examples'
   },
   {
     key: 'home.capabilities.eyebrow',
@@ -178,44 +416,44 @@ export const lensPrototypeCopy: LensCopyEntry[] = [
   {
     key: 'home.hero.system-label',
     region: 'hero',
-    technical: 'Integrated systems',
-    everyday: 'Connected tools and assistants'
+    technical: 'Technology systems for homes and small businesses',
+    everyday: 'Technology help and connected systems for homes and small businesses'
   },
   {
     key: 'home.hero.primary-action',
     region: 'hero',
-    technical: 'Start a discovery',
-    everyday: 'Start here'
+    technical: 'See services & starting prices',
+    everyday: 'See services and starting prices'
   },
   {
     key: 'home.hero.secondary-action',
     region: 'hero',
-    technical: 'Explore the system',
-    everyday: 'See how it works'
+    technical: 'Request a fit check',
+    everyday: 'Ask if Malone is a fit'
   },
   {
     key: 'home.hero.principle.human',
     region: 'hero',
-    technical: 'Human directed',
-    everyday: 'People stay in control'
+    technical: 'Clear scope',
+    everyday: 'Know what is included'
   },
   {
     key: 'home.hero.principle.context',
     region: 'hero',
-    technical: 'Context aware',
-    everyday: 'Understands what matters'
+    technical: 'Human approval',
+    everyday: 'People approve important changes'
   },
   {
     key: 'home.hero.principle.continuity',
     region: 'hero',
-    technical: 'Built for continuity',
-    everyday: 'Keeps work connected'
+    technical: 'Accounts you own',
+    everyday: 'Keep control of your accounts'
   },
   {
     key: 'home.hero.scroll-cue',
     region: 'hero',
-    technical: 'Scroll to calibrate',
-    everyday: 'Scroll to explore'
+    technical: 'Explore service paths',
+    everyday: 'See where to start'
   },
   {
     key: 'home.process.input-label',
