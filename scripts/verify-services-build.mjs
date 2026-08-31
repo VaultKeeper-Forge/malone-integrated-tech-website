@@ -15,8 +15,8 @@ const serviceList = graph.find((entry) => String(entry['@id'] ?? '').endsWith('#
 assert.equal((html.match(/<h1(?:\s|>)/g) ?? []).length, 1, 'Services page must have one h1.');
 assert.equal(
   (html.match(/data-service-offer=/g) ?? []).length,
-  14,
-  'Services page must publish 14 primary offers.',
+  15,
+  'Services page must publish 15 primary offers.',
 );
 assert.equal(
   (html.match(/data-care-plan=/g) ?? []).length,
@@ -25,14 +25,17 @@ assert.equal(
 );
 assert.equal(
   serviceList?.itemListElement?.length,
-  17,
-  'Structured data must include 14 offers and three care plans.',
+  18,
+  'Structured data must include 15 offers and three care plans.',
 );
 
 for (const required of [
   'Useful systems, clearly scoped.',
   'Business Systems Map',
   '$250',
+  'Local On-Site IT Support',
+  '$125 first hour',
+  'Systems Troubleshooting Session',
   'Connected Business Website',
   '$2,500',
   'Managed Operations System',
@@ -41,6 +44,8 @@ for (const required of [
 ]) {
   assert.ok(bodyText.includes(required), `Missing required public pricing content: ${required}`);
 }
+
+assert.doesNotMatch(bodyText, /Rescue Session/i, 'Retired rescue terminology remains public.');
 
 assert.doesNotMatch(
   bodyText,
@@ -58,5 +63,4 @@ assert.equal(systemsMap?.item?.offers?.price, 250);
 assert.equal(managedOperations?.item?.offers?.lowPrice, 5000);
 assert.equal(managedOperations?.item?.offers?.highPrice, 10000);
 
-console.log('Services build verified: 14 offers, 3 care plans, public/internal boundary intact.');
-
+console.log('Services build verified: 15 offers, 3 care plans, public/internal boundary intact.');

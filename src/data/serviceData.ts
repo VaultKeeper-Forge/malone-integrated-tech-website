@@ -10,6 +10,10 @@ export interface ServiceOffer {
   includes: string[];
   note?: string;
   featured?: boolean;
+  cta?: {
+    label: string;
+    href: string;
+  };
 }
 
 export interface ServiceCategory {
@@ -41,7 +45,7 @@ export const serviceCategories: ServiceCategory[] = [
     eyebrow: 'Start with clarity',
     title: 'Find the right-sized first move',
     summary:
-      'Use a focused diagnostic when the problem is real but the right build is not obvious yet.',
+      'Start with a fit check, a local support visit, or a focused diagnostic sized to the problem in front of you.',
     offers: [
       {
         id: 'fit-check',
@@ -53,6 +57,27 @@ export const serviceCategories: ServiceCategory[] = [
         idealFor: 'New inquiries and one clearly stated problem.',
         timeline: '20-minute call',
         includes: ['Problem framing', 'Fit and urgency check', 'Recommended next step']
+      },
+      {
+        id: 'local-onsite-it-support',
+        name: 'Local On-Site IT Support',
+        priceLabel: '$125 first hour',
+        priceMin: 125,
+        summary:
+          'Hands-on technology help at your home, home office, or small business.',
+        idealFor: 'Computer, printer, Wi-Fi, device, account, backup, and setup problems that are easier to solve in person.',
+        timeline: 'By appointment',
+        includes: [
+          'On-site diagnosis and practical troubleshooting',
+          'Setup, connection, and user guidance',
+          'A clear next step when specialist work is needed'
+        ],
+        note:
+          'Available in Amador County, Calaveras County, and nearby foothill communities. One-hour minimum; additional time is $60 per 30 minutes. Any travel charge is confirmed before scheduling. Parts and subscriptions are quoted separately and require approval.',
+        cta: {
+          label: 'Request a local appointment',
+          href: '/contact?category=local-onsite-support'
+        }
       },
       {
         id: 'systems-map',
@@ -79,15 +104,15 @@ export const serviceCategories: ServiceCategory[] = [
         note: 'This is a practical systems review, not a penetration test or compliance audit.'
       },
       {
-        id: 'rescue-session',
-        name: 'Rescue Session',
+        id: 'systems-troubleshooting-session',
+        name: 'Systems Troubleshooting Session',
         priceLabel: '$350 minimum',
         priceMin: 350,
         summary:
-          'Focused diagnosis and recovery for a broken site, automation, account handoff, or connected workflow.',
-        idealFor: 'Urgent, bounded problems with enough access and context to investigate safely.',
-        timeline: 'Scheduled by urgency',
-        includes: ['Triage and diagnosis', 'Bounded repair attempt', 'Findings and next-step note'],
+          'Focused diagnosis and repair for a website, automation, account handoff, or connected workflow that is not working as expected.',
+        idealFor: 'Time-sensitive, bounded problems with enough access and context for a safe investigation.',
+        timeline: 'Scheduled by urgency and availability',
+        includes: ['Diagnosis and technical assessment', 'Bounded repair attempt', 'Findings and recommended next step'],
         note: 'Final cost is confirmed before work expands beyond the initial session.'
       }
     ]
@@ -278,4 +303,3 @@ export const buyingTerms = [
 ];
 
 export const allPublicOffers = serviceCategories.flatMap((category) => category.offers);
-
