@@ -5,16 +5,51 @@ import Footer from '../components/layout/Footer.astro';
 import SectionHeading from '../components/sections/SectionHeading.astro';
 import HeroBanner from '../components/sections/HeroBanner.astro';
 import CapabilityGrid from '../components/sections/CapabilityGrid.astro';
+import PricingSnapshot from '../components/sections/PricingSnapshot.astro';
 import ProcessSection from '../components/sections/ProcessSection.astro';
 import ContactCTA from '../components/sections/ContactCTA.astro';
-import ProofSection from '../components/sections/ProofSection.astro';
+import ResearchTeaser from '../components/sections/ResearchTeaser.astro';
 import FeaturedWorkFeature from '../components/ui/FeaturedWorkFeature.astro';
 import { featuredWork, siteCopy } from '../data/siteData';
+import { allPublicOffers, carePlans } from '../data/serviceData';
+import { withBase } from '../lib/paths';
+
+const requireOffer = (id: string) => {
+  const offer = allPublicOffers.find((candidate) => candidate.id === id);
+  if (!offer) throw new Error(`Missing homepage service offer: ${id}`);
+  return offer;
+};
+
+const requireCarePlan = (id: string) => {
+  const plan = carePlans.find((candidate) => candidate.id === id);
+  if (!plan) throw new Error(`Missing homepage care plan: ${id}`);
+  return plan;
+};
+
+const serviceLanes = siteCopy.capabilities.map((lane) => ({
+  ...lane,
+  href: withBase(lane.href),
+  prices: lane.priceOfferIds?.map((id) => {
+    const offer = requireOffer(id);
+    return { name: offer.name, priceLabel: offer.priceLabel };
+  })
+}));
+
+const pricingItems = [
+  ...[
+    'fit-check',
+    'systems-map',
+    'digital-front-door',
+    'connected-business-website',
+    'workflow-automation'
+  ].map(requireOffer),
+  requireCarePlan('site-care')
+];
 ---
 
 <BaseLayout
-  title="AI Assistant Systems for Small Businesses | Malone Integrated Tech"
-  description="Malone Integrated Tech builds practical AI assistant systems, tool integrations, and continuity-focused workflows for people and small businesses."
+  title="Websites, IT Help & Business Technology | Malone Integrated Tech"
+  description="Malone Integrated Tech builds small-business websites, fixes technology problems, connects tools, and creates practical automation and AI assistants in Northern California."
   currentPath="/"
 >
   <TopNav />
@@ -30,67 +65,53 @@ import { featuredWork, siteCopy } from '../data/siteData';
     <section id="what-we-build" class="section-shell ultra-section" data-section="what-we-build">
       <SectionHeading
         number="01"
-        title="What We Build"
-        heading="Capabilities engineered for real workflows"
-        description="No generic assistant layer. We build systems around how people and small teams already work, then make the connections durable."
+        title="How we can help"
+        heading="Start with the problem you already recognize"
+        description="Choose the lane that sounds closest. We can sort out the technical details together."
       />
-      <CapabilityGrid items={siteCopy.capabilities} />
+      <CapabilityGrid items={serviceLanes} />
+    </section>
+
+    <section id="pricing" class="section-shell ultra-section ultra-section--compact" data-section="pricing">
+      <SectionHeading
+        number="02"
+        title="Starting prices"
+        heading="Clear numbers before a mystery sales call"
+        description="A short planning snapshot from the same service catalog used on the full Services page."
+      />
+      <PricingSnapshot items={pricingItems} servicesPath={withBase('/services')} />
+    </section>
+
+    <section id="systems-in-practice" class="section-shell ultra-section ultra-section--proof" data-section="systems-in-practice">
+      <SectionHeading
+        number="03"
+        title="Real work"
+        heading="See what Malone is building and operating"
+        description="One active client website and one owner-operated production system, each labeled honestly."
+      />
+      <div class="featured-work-stack">
+        <FeaturedWorkFeature work={featuredWork[0]} compact />
+        <FeaturedWorkFeature work={featuredWork[1]} compact />
+      </div>
     </section>
 
     <section id="how-it-works" class="section-shell ultra-section ultra-section--process" data-section="how-it-works">
       <SectionHeading
-        number="02"
-        title="How It Works"
-        heading="How the system moves"
-        mobileHeading="How the system moves"
-        description="A controlled signal path from raw input to useful work that stays coherent over time."
+        number="04"
+        title="How Malone works"
+        heading="Three steps from problem to useful handoff"
+        mobileHeading="Three useful steps"
+        description="The deeper engineering is still here. You just do not have to learn it before we can help."
       />
       <ProcessSection steps={siteCopy.process} />
     </section>
 
-    <section id="research" class="section-shell ultra-section" data-section="research">
-      <SectionHeading
-        number="03"
-        title="Research & Development"
-        heading="Research with engineering discipline"
-        description="Focused investigation into how assistants can stay present, useful, and accountable across longer human relationships."
-      />
-      <div class="research-system reveal">
-        <div class="research-system__circuit" aria-hidden="true"><span></span><i></i></div>
-        {siteCopy.research.map((item, index) => (
-          <article class:list={[
-            'research-node',
-            `research-node--${item.title === 'Human-AI Continuity' ? 'core' : `satellite-${index + 1}`}`,
-          ]}>
-            <div class="research-node__status"><i></i><span>{item.status}</span></div>
-            <h3>{item.title}</h3>
-            <p>{item.summary}</p>
-            <ul>
-              {item.constraints.map((constraint) => <li><span aria-hidden="true"></span>{constraint}</li>)}
-            </ul>
-            <span class="research-node__corner" aria-hidden="true"></span>
-          </article>
-        ))}
-      </div>
-    </section>
-
-    <section id="systems-in-practice" class="section-shell ultra-section" data-section="systems-in-practice">
-      <SectionHeading
-        number="04"
-        title="Current Work / Systems in Practice"
-        heading="Live work, honestly staged."
-        description="Client work appears first. Then comes a real owner-operated system, followed by representative patterns and prototypes that remain clearly labeled."
-      />
-      <FeaturedWorkFeature work={featuredWork[0]} />
-      <FeaturedWorkFeature work={featuredWork[1]} />
-      <div class="current-work-proof">
-        <p>Representative systems and prototypes</p>
-        <ProofSection items={siteCopy.proof} />
-      </div>
-    </section>
-
     <section id="contact" class="section-shell ultra-section ultra-section--contact" data-section="contact">
       <ContactCTA />
+    </section>
+
+    <section id="research" class="section-shell ultra-section ultra-section--research-teaser" data-section="research">
+      <ResearchTeaser items={siteCopy.research} researchPath={withBase('/research')} />
     </section>
   </main>
 

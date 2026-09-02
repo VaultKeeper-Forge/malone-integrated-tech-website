@@ -27,6 +27,11 @@ test.describe('Horizon Creations owner-operated production system', () => {
       await expect(feature).toContainText('Horizon Creations');
       await expect(feature).toContainText('Northern California');
       await expect(feature).toContainText('Commerce is mapped but not activated.');
+      if (route === '/') {
+        await expect(feature).toContainText('A live owner-operated business website connected to real product');
+      } else {
+        await expect(feature).toContainText('The production system connects product and inventory state');
+      }
       await expect(feature).not.toContainText(/active client|checkout is live|online ordering available|automatic fulfillment|case study|revenue uplift/i);
 
       const image = feature.locator('img');
@@ -44,8 +49,10 @@ test.describe('Horizon Creations owner-operated production system', () => {
 
       const redTop = await redBarons.evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
       const horizonTop = await feature.evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
-      const genericTop = await page.getByRole('heading', { name: 'Knowledge Assist Rollout' })
-        .evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
+      const comparison = route === '/'
+        ? page.locator('#how-it-works')
+        : page.getByRole('heading', { name: 'Knowledge Assist Rollout' });
+      const genericTop = await comparison.evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
       expect(redTop).toBeLessThan(horizonTop);
       expect(horizonTop).toBeLessThan(genericTop);
     });
@@ -102,11 +109,15 @@ test.describe('Horizon Creations owner-operated production system', () => {
       const protectedCopy = [
         feature.locator('h3'),
         feature.locator('.featured-work-feature__summary'),
-        feature.locator('.featured-work-feature__note'),
         feature.locator('.featured-work-feature__live'),
-        feature.locator('.featured-work-feature__next'),
         feature.locator('.featured-work-feature__cta')
       ];
+      if (route !== '/') {
+        protectedCopy.push(
+          feature.locator('.featured-work-feature__note'),
+          feature.locator('.featured-work-feature__next')
+        );
+      }
       for (const copy of protectedCopy) {
         const copyBox = await copy.boundingBox();
         expect(copyBox).not.toBeNull();
@@ -131,7 +142,11 @@ test.describe('Horizon Creations owner-operated production system', () => {
       await page.getByRole('button', { name: /open the malone integrated tech lens for everyday wording/i }).click();
       await expect(page.locator('body')).toContainText('OUR OWN LIVE BUSINESS SYSTEM');
       await expect(page.locator('body')).toContainText('SEE HORIZON LIVE');
-      await expect(page.locator('body')).toContainText('Online checkout comes next after inventory, shipping, returns, product details, and payment setup are confirmed.');
+      if (route === '/') {
+        await expect(page.locator('body')).toContainText('Commerce is mapped but not activated.');
+      } else {
+        await expect(page.locator('body')).toContainText('Online checkout comes next after inventory, shipping, returns, product details, and payment setup are confirmed.');
+      }
     }
   });
 

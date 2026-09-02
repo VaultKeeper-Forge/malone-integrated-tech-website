@@ -1,18 +1,21 @@
 ---
 import type { Capability } from '../../data/siteData';
-interface Props { items: Capability[]; }
+interface ServiceLane extends Capability {
+  prices?: { name: string; priceLabel: string }[];
+}
+interface Props { items: ServiceLane[]; }
 const { items } = Astro.props as Props;
 ---
 
 <div class="capability-system">
   <div class="capability-system__rail" aria-hidden="true"></div>
-  {items.map((item: Capability, index: number) => (
-    <article class="capability-node reveal tilt-surface" style={`--delay: ${index * 90}ms`}>
+  {items.map((item: ServiceLane, index: number) => (
+    <article class="capability-node reveal tilt-surface" style={`--delay: ${index * 90}ms`} data-service-lane={item.id}>
       <span class="panel-corner panel-corner--tl" aria-hidden="true"></span>
       <span class="panel-corner panel-corner--br" aria-hidden="true"></span>
       <header class="capability-node__header">
         <span class="capability-node__index">0{index + 1}</span>
-        <span class="system-state"><i></i> Ready</span>
+        <span class="system-state"><i></i>{item.status}</span>
       </header>
       <div class={`capability-node__icon capability-node__icon--${index + 1}`} aria-hidden="true">
         {index === 0 && <svg viewBox="0 0 72 72"><path d="M12 22h17l7-8 7 8h17v28H43l-7 8-7-8H12z" /><path d="M20 30h32M20 42h32M36 22v28" /></svg>}
@@ -21,6 +24,12 @@ const { items } = Astro.props as Props;
       </div>
       <h3>{item.title}</h3>
       <p>{item.description}</p>
+      {item.prices && item.prices.length > 0 && (
+        <p class="capability-node__prices" aria-label="Website starting prices">
+          {item.prices.map((price) => <span><strong>{price.name}</strong>{price.priceLabel}</span>)}
+        </p>
+      )}
+      <a class="capability-node__link" href={item.href}>{item.cta}<span aria-hidden="true">-&gt;</span></a>
       <div class="capability-node__signal" aria-hidden="true"><span></span></div>
     </article>
   ))}
