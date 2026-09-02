@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const routes = ['/', '/projects'];
+const routes = ['/projects'];
 const mobileWidths = [320, 360, 390, 412, 430];
 const externalUrl = 'https://www.redbaronsbitofeverything.com/';
 
@@ -13,13 +13,8 @@ test.describe('Red Barons active client feature', () => {
       await expect(feature).toContainText('ACTIVE CLIENT / LIVE WIP');
       await expect(feature).toContainText('Red Barons Bit of Everything');
       await expect(feature).toContainText('Pine Grove, California');
-      if (route === '/') {
-        await expect(feature).toContainText('A new online home for a local Pine Grove shop');
-        await expect(feature).toContainText('Active client work in progress.');
-      } else {
-        await expect(feature).toContainText('The branded work-in-progress landing page is live now while the full online showroom continues to take shape.');
-        await expect(feature).toContainText('Live now: contact, directions, store information, and the in-store Google tour.');
-      }
+      await expect(feature).toContainText('The branded work-in-progress landing page is live now while the full online showroom continues to take shape.');
+      await expect(feature).toContainText('Live now: contact, directions, store information, and the in-store Google tour.');
       await expect(feature).not.toContainText(/completed|finished|case study|success outcome/i);
 
       const image = feature.locator('img');
@@ -34,9 +29,7 @@ test.describe('Red Barons active client feature', () => {
       await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
 
       const featureTop = await feature.evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
-      const comparison = route === '/'
-        ? page.locator('#how-it-works')
-        : page.getByRole('heading', { name: 'Knowledge Assist Rollout' });
+      const comparison = page.getByRole('heading', { name: 'Knowledge Assist Rollout' });
       const comparisonTop = await comparison.evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
       expect(featureTop).toBeLessThan(comparisonTop);
     });

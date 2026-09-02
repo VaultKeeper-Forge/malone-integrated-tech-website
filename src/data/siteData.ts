@@ -7,7 +7,6 @@ export interface Capability {
   status?: string;
   href: string;
   cta: string;
-  priceOfferIds?: string[];
 }
 
 export interface ProcessStep {
@@ -89,28 +88,27 @@ export const siteCopy: SiteCopy = {
   capabilities: [
     {
       id: 'website',
-      title: 'I need a website',
+      title: 'Build it',
       description:
-        'Professional websites for local businesses, home businesses, services, shops, and growing teams.',
+        'Professional websites, rebuilds, updates, and client-facing digital experiences for local and home businesses.',
       status: 'Websites',
       href: '/services#digital-presence',
-      cta: 'See website options',
-      priceOfferIds: ['digital-front-door', 'connected-business-website']
+      cta: 'See website options'
     },
     {
       id: 'technology-help',
-      title: 'I need help with my technology',
+      title: 'Fix it',
       description:
-        'Help with computers, setup, accounts, email, domains, files, access, troubleshooting, and digital cleanup.',
+        'Computer and device help, troubleshooting, setup, tune-ups, accounts, files, access, and in-home support.',
       status: 'Technology help',
       href: '/services#start',
       cta: 'Find the right first step'
     },
     {
       id: 'business-systems',
-      title: 'I want my business to run better',
+      title: 'Connect it',
       description:
-        'Connect forms, scheduling, customer routing, everyday tools, workflow automation, and AI assistants where they are genuinely useful.',
+        'Portals, workflow automation, AI, ForgeMesh, and custom business systems that connect the tools you already use.',
       status: 'Business systems',
       href: '/services#operations',
       cta: 'See connected systems'

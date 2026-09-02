@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const routes = ['/', '/projects'];
+const routes = ['/projects'];
 const mobileWidths = [320, 360, 390, 408, 412, 430];
 const desktopWidths = [1024, 1440];
 const horizonUrl = 'https://horizoncreations.art/';
@@ -27,11 +27,7 @@ test.describe('Horizon Creations owner-operated production system', () => {
       await expect(feature).toContainText('Horizon Creations');
       await expect(feature).toContainText('Northern California');
       await expect(feature).toContainText('Commerce is mapped but not activated.');
-      if (route === '/') {
-        await expect(feature).toContainText('A live owner-operated business website connected to real product');
-      } else {
-        await expect(feature).toContainText('The production system connects product and inventory state');
-      }
+      await expect(feature).toContainText('The production system connects product and inventory state');
       await expect(feature).not.toContainText(/active client|checkout is live|online ordering available|automatic fulfillment|case study|revenue uplift/i);
 
       const image = feature.locator('img');
@@ -49,9 +45,7 @@ test.describe('Horizon Creations owner-operated production system', () => {
 
       const redTop = await redBarons.evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
       const horizonTop = await feature.evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
-      const comparison = route === '/'
-        ? page.locator('#how-it-works')
-        : page.getByRole('heading', { name: 'Knowledge Assist Rollout' });
+      const comparison = page.getByRole('heading', { name: 'Knowledge Assist Rollout' });
       const genericTop = await comparison.evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
       expect(redTop).toBeLessThan(horizonTop);
       expect(horizonTop).toBeLessThan(genericTop);
@@ -142,11 +136,7 @@ test.describe('Horizon Creations owner-operated production system', () => {
       await page.getByRole('button', { name: /open the malone integrated tech lens for everyday wording/i }).click();
       await expect(page.locator('body')).toContainText('OUR OWN LIVE BUSINESS SYSTEM');
       await expect(page.locator('body')).toContainText('SEE HORIZON LIVE');
-      if (route === '/') {
-        await expect(page.locator('body')).toContainText('Commerce is mapped but not activated.');
-      } else {
-        await expect(page.locator('body')).toContainText('Online checkout comes next after inventory, shipping, returns, product details, and payment setup are confirmed.');
-      }
+      await expect(page.locator('body')).toContainText('Online checkout comes next after inventory, shipping, returns, product details, and payment setup are confirmed.');
     }
   });
 

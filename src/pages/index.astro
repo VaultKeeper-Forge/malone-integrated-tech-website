@@ -5,46 +5,16 @@ import Footer from '../components/layout/Footer.astro';
 import SectionHeading from '../components/sections/SectionHeading.astro';
 import HeroBanner from '../components/sections/HeroBanner.astro';
 import CapabilityGrid from '../components/sections/CapabilityGrid.astro';
-import PricingSnapshot from '../components/sections/PricingSnapshot.astro';
 import ProcessSection from '../components/sections/ProcessSection.astro';
 import ContactCTA from '../components/sections/ContactCTA.astro';
 import ResearchTeaser from '../components/sections/ResearchTeaser.astro';
-import FeaturedWorkFeature from '../components/ui/FeaturedWorkFeature.astro';
-import { featuredWork, siteCopy } from '../data/siteData';
-import { allPublicOffers, carePlans } from '../data/serviceData';
+import { siteCopy } from '../data/siteData';
 import { withBase } from '../lib/paths';
-
-const requireOffer = (id: string) => {
-  const offer = allPublicOffers.find((candidate) => candidate.id === id);
-  if (!offer) throw new Error(`Missing homepage service offer: ${id}`);
-  return offer;
-};
-
-const requireCarePlan = (id: string) => {
-  const plan = carePlans.find((candidate) => candidate.id === id);
-  if (!plan) throw new Error(`Missing homepage care plan: ${id}`);
-  return plan;
-};
 
 const serviceLanes = siteCopy.capabilities.map((lane) => ({
   ...lane,
   href: withBase(lane.href),
-  prices: lane.priceOfferIds?.map((id) => {
-    const offer = requireOffer(id);
-    return { name: offer.name, priceLabel: offer.priceLabel };
-  })
 }));
-
-const pricingItems = [
-  ...[
-    'fit-check',
-    'systems-map',
-    'digital-front-door',
-    'connected-business-website',
-    'workflow-automation'
-  ].map(requireOffer),
-  requireCarePlan('site-care')
-];
 ---
 
 <BaseLayout
@@ -62,48 +32,50 @@ const pricingItems = [
       <HeroBanner />
     </section>
 
-    <section id="what-we-build" class="section-shell ultra-section" data-section="what-we-build">
+    <section id="how-we-help" class="section-shell ultra-section" data-section="how-we-help">
       <SectionHeading
         number="01"
         title="How we can help"
-        heading="Start with the problem you already recognize"
-        description="Choose the lane that sounds closest. We can sort out the technical details together."
+        heading="Start with the kind of help you need"
+        description="Fix something, build something, or connect the pieces. Choose the door that sounds closest and we will sort out the details together."
       />
       <CapabilityGrid items={serviceLanes} />
-    </section>
-
-    <section id="pricing" class="section-shell ultra-section ultra-section--compact" data-section="pricing">
-      <SectionHeading
-        number="02"
-        title="Starting prices"
-        heading="Clear numbers before a mystery sales call"
-        description="A short planning snapshot from the same service catalog used on the full Services page."
-      />
-      <PricingSnapshot items={pricingItems} servicesPath={withBase('/services')} />
-    </section>
-
-    <section id="systems-in-practice" class="section-shell ultra-section ultra-section--proof" data-section="systems-in-practice">
-      <SectionHeading
-        number="03"
-        title="Real work"
-        heading="See what Malone is building and operating"
-        description="One active client website and one owner-operated production system, each labeled honestly."
-      />
-      <div class="featured-work-stack">
-        <FeaturedWorkFeature work={featuredWork[0]} compact />
-        <FeaturedWorkFeature work={featuredWork[1]} compact />
+      <div class="section-link-row">
+        <p>Need the full list of offers, boundaries, and starting prices?</p>
+        <a class="text-link" href={withBase('/services')}>See Services <span aria-hidden="true">-&gt;</span></a>
       </div>
     </section>
 
     <section id="how-it-works" class="section-shell ultra-section ultra-section--process" data-section="how-it-works">
       <SectionHeading
-        number="04"
+        number="02"
         title="How Malone works"
-        heading="Three steps from problem to useful handoff"
-        mobileHeading="Three useful steps"
-        description="The deeper engineering is still here. You just do not have to learn it before we can help."
+        heading="A clear path from friction to useful handoff"
+        mobileHeading="A clear path forward"
+        description="We start with what is not working, build only what the job needs, and leave you with clear ownership."
       />
       <ProcessSection steps={siteCopy.process} />
+    </section>
+
+    <section id="why-malone" class="section-shell ultra-section ultra-section--compact" data-section="why-malone">
+      <SectionHeading
+        number="03"
+        title="Why Malone"
+        heading="Practical technology with clear boundaries"
+        description="You keep ownership of your accounts and data. Scope is written down. Advanced AI and connected systems are introduced only when they earn their place."
+      />
+      <div class="trust-signal-grid">
+        {siteCopy.hero.principles.map((principle, index) => (
+          <article class="trust-signal reveal">
+            <span class="trust-signal__index">0{index + 1}</span>
+            <h3>{principle}</h3>
+          </article>
+        ))}
+      </div>
+      <div class="section-link-row section-link-row--work">
+        <p>Want to see the work behind the promise?</p>
+        <a class="text-link" href={withBase('/projects')}>See Current Work <span aria-hidden="true">-&gt;</span></a>
+      </div>
     </section>
 
     <section id="contact" class="section-shell ultra-section ultra-section--contact" data-section="contact">
