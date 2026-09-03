@@ -186,9 +186,13 @@ test.describe('Malone consumer surface', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
       'Useful systems, clearly scoped.'
     );
-    await expect(page.locator('[data-service-offer]')).toHaveCount(14);
+    await expect(page.locator('[data-service-offer]')).toHaveCount(15);
     await expect(page.locator('[data-care-plan]')).toHaveCount(3);
+    await expect(page.locator('[data-service-offer="local-onsite-it-support"]'))
+      .toContainText('$125 first hour');
     await expect(page.locator('[data-service-offer="systems-map"]')).toContainText('$250');
+    await expect(page.locator('[data-service-offer="systems-troubleshooting-session"]'))
+      .toContainText('Systems Troubleshooting Session');
     await expect(
       page.locator('[data-service-offer="connected-business-website"]')
     ).toContainText('$2,500');
@@ -200,6 +204,9 @@ test.describe('Malone consumer surface', () => {
       'href',
       '/contact'
     );
+    await expect(page.getByRole('link', { name: /request a local appointment/i }))
+      .toHaveAttribute('href', '/contact?category=local-onsite-support');
+    await expect(page.locator('body')).not.toContainText('Rescue Session');
     await expect(page.locator('body')).not.toContainText(
       /internal floor|target margin|discount cap|labor cost|estimated hours/i
     );
@@ -210,12 +217,30 @@ test.describe('Malone consumer surface', () => {
       const itemList = graph.find((entry) => entry['@id']?.endsWith('#services'));
       return itemList?.itemListElement?.map((entry) => entry.item) || [];
     });
-    expect(services).toHaveLength(17);
+    expect(services).toHaveLength(18);
     expect(services.find((service) => service.name === 'Business Systems Map')?.offers?.price)
       .toBe(250);
     expect(
       services.find((service) => service.name === 'Managed Operations System')?.offers?.lowPrice
     ).toBe(5000);
+    expect(faults).toEqual([]);
+  });
+
+  test('local support routes into an appointment-specific intake', async ({ page }) => {
+    const faults = observe(page);
+    await page.goto('/services', { waitUntil: 'networkidle' });
+    await page.getByRole('link', { name: /request a local appointment/i }).click();
+    await expect(page).toHaveURL(/\/contact\?category=local-onsite-support$/);
+    await expect(page.locator('select[name="category"]')).toHaveValue('Local on-site IT support');
+    await expect(page.locator('[data-local-appointment-note]')).toBeVisible();
+    await expect(page.locator('[data-local-appointment-note]')).toContainText(
+      'Malone will confirm the service area, any travel charge, and an available arrival window'
+    );
+    await expect(page.locator('[data-meeting-option]')).toBeHidden();
+    await expect(page.locator('textarea[name="message"]')).toHaveAttribute(
+      'placeholder',
+      /town or ZIP code/
+    );
     expect(faults).toEqual([]);
   });
 
@@ -277,7 +302,8 @@ test.describe('Malone consumer surface', () => {
     await page.getByRole('textbox', { name: /^Name Required/ }).fill('Double Verification Client');
     await page.getByRole('textbox', { name: /^Email Required/ }).fill('external.test@example.com');
     await page.getByRole('textbox', { name: /Business \/ organization/i }).fill('Consumer QA');
-    await page.getByRole('combobox', { name: /What can we help with/i }).selectOption({ index: 1 });
+    await page.getByRole('combobox', { name: /What can we help with/i })
+      .selectOption({ label: 'Computer / device help' });
     const message = 'Contact Desk verification ' + info.project.name +
       ' pass ' + (info.repeatEachIndex + 1);
     await page.getByRole('textbox', { name: /Message \/ question/i }).fill(message);
@@ -291,7 +317,8 @@ test.describe('Malone consumer surface', () => {
     await page.reload({ waitUntil: 'networkidle' });
     await page.getByRole('textbox', { name: /^Name Required/ }).fill('Meeting Verification Client');
     await page.getByRole('textbox', { name: /^Email Required/ }).fill('meeting.test@example.com');
-    await page.getByRole('combobox', { name: /What can we help with/i }).selectOption({ index: 2 });
+    await page.getByRole('combobox', { name: /What can we help with/i })
+      .selectOption({ label: 'Website help' });
     await page.getByRole('textbox', { name: /Message \/ question/i }).fill(
       'Please route this discovery meeting request through the booking flow.'
     );
