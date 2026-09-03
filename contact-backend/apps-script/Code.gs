@@ -2,6 +2,11 @@ const MALONE_CONTACT_CONFIG = Object.freeze({
   formId: 'malone-contact-v1',
   notificationTo: 'curtis@maloneintegratedtech.com',
   allowedCategories: Object.freeze([
+    'Local on-site IT support',
+    'Computer / device help',
+    'Website help',
+    'Business systems / automation / AI',
+    'Not sure — help me figure it out',
     'Integrated assistant systems',
     'Business systems',
     'Tool integration',

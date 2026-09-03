@@ -2,7 +2,7 @@
 import { withBase } from '../../lib/paths';
 
 const homePath = withBase('/');
-const whatWeBuildPath = `${homePath}#what-we-build`;
+const whatWeBuildPath = `${homePath}#how-we-help`;
 const howItWorksPath = `${homePath}#how-it-works`;
 const researchPath = withBase('/research');
 const proofPath = withBase('/projects');
@@ -19,10 +19,10 @@ const clientSignInPath = 'https://malone-client-operations-platform.vercel.app/l
       <img src={withBase('/brand/malone_lockup_horizontal_dark.png')} class="site-nav__lockup" alt="" />
     </a>
     <ul class="site-nav__links">
-      <li><a href={whatWeBuildPath} data-nav-section="what-we-build">Capabilities</a></li>
-      <li><a href={howItWorksPath} data-nav-section="how-it-works">Process</a></li>
-      <li><a href={researchPath} data-nav-section="research">R&amp;D</a></li>
-      <li><a href={proofPath} data-nav-section="proof">Current Work</a></li>
+      <li><a href={whatWeBuildPath} data-nav-section="how-we-help">How We Help</a></li>
+      <li><a href={howItWorksPath} data-nav-section="how-it-works">How It Works</a></li>
+      <li><a href={proofPath}>Current Work</a></li>
+      <li><a href={researchPath}>Research</a></li>
       <li><a href={servicesPath}>Services</a></li>
       <li><a href={clientSignInPath}>Client Sign In</a></li>
     </ul>
@@ -32,10 +32,10 @@ const clientSignInPath = 'https://malone-client-operations-platform.vercel.app/l
     <details class="site-nav__menu">
       <summary class="site-nav__menu-trigger" role="button" aria-controls="site-mobile-nav" aria-expanded="false" aria-label="Open navigation"><span></span><span></span></summary>
       <div class="site-nav__menu-panel" id="site-mobile-nav">
-        <a href={whatWeBuildPath}>Capabilities</a>
-        <a href={howItWorksPath}>Process</a>
-        <a href={researchPath}>Research &amp; Development</a>
+        <a href={whatWeBuildPath}>How We Help</a>
+        <a href={howItWorksPath}>How It Works</a>
         <a href={proofPath}>Current Work</a>
+        <a href={researchPath}>Research &amp; Development</a>
         <a href={servicesPath}>Services</a>
         <a href={clientSignInPath}>Client Sign In</a>
         <a href={contactPath}>Start a project</a>

@@ -1,9 +1,12 @@
 ﻿export type Severity = 'production' | 'pilot' | 'research';
 
 export interface Capability {
+  id: string;
   title: string;
   description: string;
   status?: string;
+  href: string;
+  cta: string;
 }
 
 export interface ProcessStep {
@@ -30,8 +33,10 @@ export interface SiteCopy {
   brand: string;
   domain: string;
   hero: {
+    eyebrow: string;
     line: string;
     detail: string;
+    principles: string[];
   };
   capabilities: Capability[];
   process: ProcessStep[];
@@ -66,53 +71,61 @@ export interface FeaturedWork {
     label: string;
     fallbackLabel: string;
   };
+  frontSummary?: string;
+  frontNote?: string;
 }
 
 export const siteCopy: SiteCopy = {
   brand: 'Malone Integrated Tech',
   domain: 'maloneintegratedtech.com',
   hero: {
-    line: 'Integrated Assistant Systems for People and Small Businesses',
+    eyebrow: 'Websites + IT help + smarter systems',
+    line: 'Websites, IT help, and smarter business systems.',
     detail:
-      'From context capture to continuity-aware action, we build integrated assistant systems for practical people-first workflows.'
+      'From everyday computer problems to professional websites, connected tools, automation, and AI assistants, Malone Integrated Tech builds practical technology around the way you actually work.',
+    principles: ['Clear scope', 'Straightforward pricing', 'You own your accounts and data']
   },
   capabilities: [
     {
-      title: 'Systems Architecture',
+      id: 'website',
+      title: 'Build it',
       description:
-        'Assistant systems, context architecture, continuity, and knowledge systems shaped around the way work actually moves.'
+        'Professional websites, rebuilds, updates, and client-facing digital experiences for local and home businesses.',
+      status: 'Websites',
+      href: '/services#digital-presence',
+      cta: 'See website options'
     },
     {
-      title: 'Human-AI Integration',
+      id: 'technology-help',
+      title: 'Fix it',
       description:
-        'Practical AI deployment, human oversight, interfaces, and workflows that stay understandable to the people using them.'
+        'Computer and device help, troubleshooting, setup, tune-ups, accounts, files, access, and in-home support.',
+      status: 'Technology help',
+      href: '/services#start',
+      cta: 'Find the right first step'
     },
     {
-      title: 'Workflow & Tool Integration',
+      id: 'business-systems',
+      title: 'Connect it',
       description:
-        'Applications, automation, connectors, and existing business systems joined through reliable integration patterns.'
+        'Portals, workflow automation, AI, ForgeMesh, and custom business systems that connect the tools you already use.',
+      status: 'Business systems',
+      href: '/services#operations',
+      cta: 'See connected systems'
     },
   ],
   process: [
     {
-      title: 'Capture',
-      detail: 'Map source channels, owners, and consent boundaries before integration begins.'
+      title: 'Understand the problem',
+      detail: 'We look at what is actually frustrating, broken, slow, or disconnected.'
     },
     {
-      title: 'Context',
-      detail: 'Resolve ambiguity through versioned context and explicit fallback states.'
+      title: 'Build the smallest useful solution',
+      detail: 'Website, setup, automation, AI assistant, or connected workflow - only what the job earns.'
     },
     {
-      title: 'Tools',
-      detail: 'Compose calibrated tool chains with explicit ownership and deterministic handoffs.'
-    },
-    {
-      title: 'Action',
-      detail: 'Execute with visible approval gates and auditable transition points.'
-    },
-    {
-      title: 'Continuity',
-      detail: 'Persist state safely so operations remain stable across long conversations.'
+      title: 'Hand you something you can use',
+      detail: 'Clear scope, visible checkpoints, owner-held accounts, and a practical handoff.'
     }
   ],
   proof: [
@@ -191,7 +204,11 @@ export const featuredWork: FeaturedWork[] = [
       height: 900,
       label: 'LIVE SURFACE',
       fallbackLabel: 'LIVE CLIENT WEBSITE'
-    }
+    },
+    frontSummary:
+      'A new online home for a local Pine Grove shop, built to make the business easier to find, understand, and contact.',
+    frontNote:
+      'Active client work in progress. The live page already provides contact, directions, store information, and the in-store Google tour.'
   },
   {
     id: 'horizon-creations',
@@ -227,6 +244,10 @@ export const featuredWork: FeaturedWork[] = [
       height: 846,
       label: 'LIVE PRODUCTION',
       fallbackLabel: 'OWNER-OPERATED SYSTEM'
-    }
+    },
+    frontSummary:
+      'A live owner-operated business website connected to real product, contact, custom-work, and private assistant workflows.',
+    frontNote:
+      'Live production system. Commerce is mapped but not activated.'
   }
 ];

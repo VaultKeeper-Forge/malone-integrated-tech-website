@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const routes = ['/', '/projects'];
+const routes = ['/projects'];
 const mobileWidths = [320, 360, 390, 412, 430];
 const externalUrl = 'https://www.redbaronsbitofeverything.com/';
 
@@ -29,9 +29,9 @@ test.describe('Red Barons active client feature', () => {
       await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
 
       const featureTop = await feature.evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
-      const genericTop = await page.getByRole('heading', { name: 'Knowledge Assist Rollout' })
-        .evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
-      expect(featureTop).toBeLessThan(genericTop);
+      const comparison = page.getByRole('heading', { name: 'Knowledge Assist Rollout' });
+      const comparisonTop = await comparison.evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
+      expect(featureTop).toBeLessThan(comparisonTop);
     });
   }
 

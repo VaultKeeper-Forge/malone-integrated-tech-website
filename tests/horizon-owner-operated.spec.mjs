@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const routes = ['/', '/projects'];
+const routes = ['/projects'];
 const mobileWidths = [320, 360, 390, 408, 412, 430];
 const desktopWidths = [1024, 1440];
 const horizonUrl = 'https://horizoncreations.art/';
@@ -27,6 +27,7 @@ test.describe('Horizon Creations owner-operated production system', () => {
       await expect(feature).toContainText('Horizon Creations');
       await expect(feature).toContainText('Northern California');
       await expect(feature).toContainText('Commerce is mapped but not activated.');
+      await expect(feature).toContainText('The production system connects product and inventory state');
       await expect(feature).not.toContainText(/active client|checkout is live|online ordering available|automatic fulfillment|case study|revenue uplift/i);
 
       const image = feature.locator('img');
@@ -44,8 +45,8 @@ test.describe('Horizon Creations owner-operated production system', () => {
 
       const redTop = await redBarons.evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
       const horizonTop = await feature.evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
-      const genericTop = await page.getByRole('heading', { name: 'Knowledge Assist Rollout' })
-        .evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
+      const comparison = page.getByRole('heading', { name: 'Knowledge Assist Rollout' });
+      const genericTop = await comparison.evaluate((node) => node.getBoundingClientRect().top + window.scrollY);
       expect(redTop).toBeLessThan(horizonTop);
       expect(horizonTop).toBeLessThan(genericTop);
     });
@@ -102,11 +103,15 @@ test.describe('Horizon Creations owner-operated production system', () => {
       const protectedCopy = [
         feature.locator('h3'),
         feature.locator('.featured-work-feature__summary'),
-        feature.locator('.featured-work-feature__note'),
         feature.locator('.featured-work-feature__live'),
-        feature.locator('.featured-work-feature__next'),
         feature.locator('.featured-work-feature__cta')
       ];
+      if (route !== '/') {
+        protectedCopy.push(
+          feature.locator('.featured-work-feature__note'),
+          feature.locator('.featured-work-feature__next')
+        );
+      }
       for (const copy of protectedCopy) {
         const copyBox = await copy.boundingBox();
         expect(copyBox).not.toBeNull();

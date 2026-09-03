@@ -66,6 +66,13 @@ assert(categoryBlock, 'Built form must contain category selector.');
 const categories = [...categoryBlock[0].matchAll(/<option[^>]*value="([^"]+)"/gi)]
   .map((match) => match[1].trim()).filter(Boolean);
 assert(categories.length > 0, 'Built form must expose categories.');
+assert.deepEqual(categories, [
+  'Local on-site IT support',
+  'Computer / device help',
+  'Website help',
+  'Business systems / automation / AI',
+  'Not sure — help me figure it out',
+], 'Built form categories drifted from the approved V2 contact contract.');
 for (const field of ['name','email','organization','category','message','website','formId','requestId','formStartedAt','meetingRequested']) {
   assert(html.includes(`name="${field}"`), `Built form missing ${field}.`);
 }

@@ -4,7 +4,7 @@ interface Props { steps: ProcessStep[]; }
 const { steps } = Astro.props as Props;
 ---
 
-<div class="process-system reveal" data-process-system>
+<div class="process-system reveal" data-process-system style={`--process-count: ${steps.length}`}>
   <div class="process-system__track" aria-hidden="true"><span></span></div>
   <ol>
     {steps.map((step: ProcessStep, index: number) => (
@@ -14,5 +14,5 @@ const { steps } = Astro.props as Props;
       </li>
     ))}
   </ol>
-  <div class="process-system__readout" aria-hidden="true"><span>Input</span><i></i><span>Sustained execution</span></div>
+  <div class="process-system__readout" aria-hidden="true"><span>Problem</span><i></i><span>Useful handoff</span></div>
 </div>
