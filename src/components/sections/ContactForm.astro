@@ -103,8 +103,8 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
       <p>Include the service town or ZIP code, the equipment involved, and what is not working. Malone will confirm the service area, any travel charge, and an available arrival window before the visit.</p>
     </div>
 
-    <label class="meeting-option" data-meeting-option>
-      <input type="checkbox" name="meetingRequested" value="yes" />
+    <label class="meeting-option" data-meeting-option hidden>
+      <input type="checkbox" name="meetingRequested" value="yes" disabled />
       <span class="meeting-option__control" aria-hidden="true"><i></i></span>
       <span class="meeting-option__icon" aria-hidden="true">
         <svg viewBox="0 0 40 40">
@@ -189,6 +189,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
       meetingRequested: boolean;
     } | null = null;
     let responseTimer = 0;
+    let isRouting = false;
 
     const makeRequestId = () =>
       globalThis.crypto?.randomUUID?.() ??
@@ -204,10 +205,10 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
     const syncIntakeMode = () => {
       const isLocalAppointment = category?.value === localSupportCategory;
       if (localAppointmentNote) localAppointmentNote.hidden = !isLocalAppointment;
-      if (meetingOption) meetingOption.hidden = isLocalAppointment;
+      if (meetingOption) meetingOption.hidden = true;
       if (meetingRequested) {
-        if (isLocalAppointment) meetingRequested.checked = false;
-        meetingRequested.disabled = isLocalAppointment;
+        meetingRequested.checked = false;
+        meetingRequested.disabled = true;
       }
       if (messageField) {
         messageField.placeholder = isLocalAppointment
@@ -217,6 +218,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
     };
 
     const setState = (next: 'input' | 'routing' | 'confirmed' | 'error', message = '') => {
+      isRouting = next === 'routing';
       if (stateRail) stateRail.dataset.state = next;
       if (status) {
         status.dataset.kind = next;
@@ -272,6 +274,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
 
     form?.addEventListener('submit', (event) => {
       event.preventDefault();
+      if (isRouting) return;
       if (!form || !validateForm()) {
         setState('error', 'Check the highlighted fields and try again.');
         return;
@@ -294,7 +297,10 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
       setState('routing', 'Input locked. Routing your message now.');
       window.clearTimeout(responseTimer);
       responseTimer = window.setTimeout(() => {
-        setState('error', 'The message route did not confirm in time. Your form is still here, so you can try again.');
+        setState(
+          'error',
+          'We could not confirm whether your message arrived. Delivery may already have succeeded, so check your inbox before retrying or use the direct email path.'
+        );
       }, 15000);
 
       window.setTimeout(() => {

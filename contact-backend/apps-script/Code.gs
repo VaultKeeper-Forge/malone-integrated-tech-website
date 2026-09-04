@@ -32,6 +32,8 @@ function doGet() {
 function doPost(e) {
   const submittedAt = new Date();
   let requestId = '';
+  let lock = null;
+  let lockAcquired = false;
 
   try {
     if (!e || !e.parameter) {
@@ -63,6 +65,12 @@ function doPost(e) {
       return contactError_('Online scheduling is being calibrated. Please uncheck the meeting request or use the direct email path.', requestId);
     }
 
+    lock = LockService.getScriptLock();
+    if (!lock.tryLock(1500)) {
+      return contactError_('The message channel is busy. Please wait a moment and try again.', requestId);
+    }
+    lockAcquired = true;
+
     const cache = CacheService.getScriptCache();
     const requestKey = 'request:' + payload.requestId;
     const existingState = cache.get(requestKey);
@@ -71,15 +79,16 @@ function doPost(e) {
       return contactSuccess_(payload.meetingRequested ? bookingUrl : '', requestId);
     }
 
+    const requiredQuota = existingState === 'owner_sent' ? 1 : 2;
+    if (MailApp.getRemainingDailyQuota() < requiredQuota) {
+      return contactError_('The message channel has reached its daily limit. Please use the direct email path.', requestId);
+    }
+
     if (!existingState) {
-      const rateResult = reserveRateLimit_(payload.email);
+      const rateResult = reserveRateLimit_(cache, payload.email);
       if (!rateResult.ok) {
         return contactError_(rateResult.message, requestId);
       }
-    }
-
-    if (MailApp.getRemainingDailyQuota() < 2) {
-      return contactError_('The message channel has reached its daily limit. Please use the direct email path.', requestId);
     }
 
     if (existingState !== 'owner_sent') {
@@ -93,20 +102,24 @@ function doPost(e) {
     return contactSuccess_(payload.meetingRequested ? bookingUrl : '', requestId);
   } catch (error) {
     return contactError_('The message could not be confirmed. Please try again or use the direct email path.', requestId);
+  } finally {
+    if (lockAcquired) {
+      lock.releaseLock();
+    }
   }
 }
 
 function normalizePayload_(parameters) {
   return {
-    formId: safeText_(parameters.formId, 80),
-    requestId: safeText_(parameters.requestId, 80),
+    formId: safeText_(parameters.formId),
+    requestId: safeText_(parameters.requestId),
     formStartedAt: Number(parameters.formStartedAt || 0),
     website: safeText_(parameters.website, 200),
-    name: safeText_(parameters.name, 120),
+    name: safeText_(parameters.name),
     email: normalizeEmail_(parameters.email),
-    organization: safeText_(parameters.organization, 160),
-    category: safeText_(parameters.category, 80),
-    message: safeMultiline_(parameters.message, 5000),
+    organization: safeText_(parameters.organization),
+    category: safeText_(parameters.category),
+    message: safeMultiline_(parameters.message),
     meetingRequested: String(parameters.meetingRequested || '').toLowerCase() === 'yes'
   };
 }
@@ -156,34 +169,24 @@ function invalid_(message) {
   return { ok: false, message: message };
 }
 
-function reserveRateLimit_(email) {
-  const lock = LockService.getScriptLock();
-  if (!lock.tryLock(1500)) {
-    return invalid_('The message channel is busy. Please wait a moment and try again.');
+function reserveRateLimit_(cache, email) {
+  const minuteBucket = Math.floor(Date.now() / 60000);
+  const globalKey = 'rate:global:' + minuteBucket;
+  const emailKey = 'rate:email:' + hash_(email);
+  const globalCount = Number(cache.get(globalKey) || 0);
+  const emailCount = Number(cache.get(emailKey) || 0);
+
+  if (globalCount >= MALONE_CONTACT_CONFIG.maxGlobalPerMinute) {
+    return invalid_('The message channel is receiving unusually high traffic. Please wait a moment and try again.');
   }
 
-  try {
-    const cache = CacheService.getScriptCache();
-    const minuteBucket = Math.floor(Date.now() / 60000);
-    const globalKey = 'rate:global:' + minuteBucket;
-    const emailKey = 'rate:email:' + hash_(email);
-    const globalCount = Number(cache.get(globalKey) || 0);
-    const emailCount = Number(cache.get(emailKey) || 0);
-
-    if (globalCount >= MALONE_CONTACT_CONFIG.maxGlobalPerMinute) {
-      return invalid_('The message channel is receiving unusually high traffic. Please wait a moment and try again.');
-    }
-
-    if (emailCount >= MALONE_CONTACT_CONFIG.maxPerEmailPerTenMinutes) {
-      return invalid_('Please wait before sending another message from this email address.');
-    }
-
-    cache.put(globalKey, String(globalCount + 1), 90);
-    cache.put(emailKey, String(emailCount + 1), 600);
-    return { ok: true };
-  } finally {
-    lock.releaseLock();
+  if (emailCount >= MALONE_CONTACT_CONFIG.maxPerEmailPerTenMinutes) {
+    return invalid_('Please wait before sending another message from this email address.');
   }
+
+  cache.put(globalKey, String(globalCount + 1), 90);
+  cache.put(emailKey, String(emailCount + 1), 600);
+  return { ok: true };
 }
 
 function sendMaloneNotification_(payload, submittedAt, notificationTo) {
@@ -372,7 +375,7 @@ function formatTimestamp_(date) {
 }
 
 function normalizeEmail_(value) {
-  return safeText_(value, 254).toLowerCase();
+  return safeText_(value).toLowerCase();
 }
 
 function normalizeUrl_(value) {
@@ -380,19 +383,19 @@ function normalizeUrl_(value) {
 }
 
 function safeText_(value, maxLength) {
-  return String(value || '')
+  const normalized = String(value || '')
     .replace(/[\u0000-\u001f\u007f]/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, maxLength);
+    .trim();
+  return Number.isFinite(maxLength) ? normalized.slice(0, maxLength) : normalized;
 }
 
 function safeMultiline_(value, maxLength) {
-  return String(value || '')
+  const normalized = String(value || '')
     .replace(/\r\n?/g, '\n')
     .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
-    .trim()
-    .slice(0, maxLength);
+    .trim();
+  return Number.isFinite(maxLength) ? normalized.slice(0, maxLength) : normalized;
 }
 
 function isEmail_(value) {
