@@ -14,7 +14,7 @@ It is a standalone Google Apps Script web app that:
 - does not persist raw submissions;
 - never returns recipient information to the browser.
 
-## Required owner setup
+## Owner setup and safe defaults
 
 Create a standalone Apps Script project while signed in as the Workspace identity that should send the messages.
 
@@ -23,15 +23,22 @@ Add:
 - `Code.gs`
 - `appsscript.json`
 
-Set these Script Properties:
+The current production release has safe built-in defaults for message delivery and
+callback origin. Script Properties are optional overrides unless a future,
+separately authorized release says otherwise.
 
-| Property | Required value |
+| Property | Current behavior |
 | --- | --- |
-| `MALONE_NOTIFICATION_TO` | `curtis@maloneintegratedtech.com` |
-| `ALLOWED_ORIGIN` | `https://www.maloneintegratedtech.com` |
-| `BOOKING_URL` | The exact public Google Appointment Schedule URL |
+| `MALONE_NOTIFICATION_TO` | Optional override. When unset, the backend uses the safe production default `curtis@maloneintegratedtech.com`. |
+| `ALLOWED_ORIGIN` | Optional override. When unset, the backend uses the current production origin `https://www.maloneintegratedtech.com`. |
+| `BOOKING_URL` | Optional, dormant backend-only configuration. Leave it unset for the current hard-off release. |
 
-`BOOKING_URL` must be an HTTPS Google scheduling URL. The backend fails closed for meeting requests if it is absent or malformed.
+If `BOOKING_URL` is ever configured, it must be an HTTPS Google scheduling URL.
+The backend fails closed for meeting requests when it is absent or malformed.
+Setting this property does not enable the public meeting interface by itself:
+the current frontend keeps that control hidden and disabled. Re-enabling meeting
+requests requires an explicit code and configuration change plus fresh live
+acceptance.
 
 Deploy as a Web app:
 
@@ -68,11 +75,25 @@ Do not commit:
 3. Submit from a non-Malone external email address.
 4. Confirm the Malone notification reaches `curtis@maloneintegratedtech.com`.
 5. Confirm the external sender receives a separate confirmation containing the submitted message.
-6. Repeat with the meeting checkbox selected.
-7. Confirm the Malone subject begins with `DISCOVERY MEETING REQUESTED`.
-8. Confirm the customer email and page show the Google scheduling link.
-9. Book an available test slot and confirm Google creates the Calendar event and Google Meet link.
-10. Remove or retain the test event according to the owner's preference.
+6. On desktop and mobile, select each of the five public contact categories and confirm the meeting control remains hidden, unchecked, and disabled.
+7. Submit a normal inquiry and confirm its request does not contain `meetingRequested=yes`.
+8. Confirm neither the Malone notification nor the customer confirmation contains a discovery-meeting marker or scheduling link.
+9. Confirm the browser confirmation state does not expose a scheduling link.
+10. Run the backend harness and confirm a direct meeting request fails closed without sending mail when `BOOKING_URL` is absent or malformed.
+
+## Future meeting re-enable procedure (not currently authorized)
+
+Do not perform these steps under the current release authority. A future meeting
+release requires all of the following:
+
+1. Obtain explicit owner authorization and the approved Google Appointment Schedule URL.
+2. Configure `BOOKING_URL` and make an explicit frontend change that unhides and enables the accessible meeting control where appropriate.
+3. Update the frontend and backend acceptance tests for the newly authorized behavior.
+4. Deploy a new immutable Apps Script version and the matching frontend release.
+5. Repeat live acceptance for the browser response, both email paths, the scheduling link, duplicate prevention, and the authorized test appointment lifecycle.
+
+Configuring `BOOKING_URL` alone is never sufficient evidence that meeting requests
+are enabled or accepted.
 
 The printed business-card QR remains unchanged and continues to point to:
 

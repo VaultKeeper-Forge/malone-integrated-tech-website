@@ -9,26 +9,63 @@ const localOrigin = new URL(process.env.SITE_BASE_URL || 'http://127.0.0.1:4334'
 
 function observe(page) {
   const faults = [];
+  const assetTypes = new Set(['stylesheet', 'script', 'image', 'font']);
   page.on('console', (message) => {
     if (message.type() === 'error') faults.push('console: ' + message.text());
   });
   page.on('pageerror', (error) => faults.push('page: ' + error.message));
+  page.on('requestfailed', (request) => {
+    if (assetTypes.has(request.resourceType())) {
+      faults.push('requestfailed: ' + request.url() + ' ' +
+        (request.failure()?.errorText || 'unknown failure'));
+    }
+  });
+  page.on('response', (response) => {
+    if (assetTypes.has(response.request().resourceType()) && response.status() >= 400) {
+      faults.push('asset: ' + response.status() + ' ' + response.url());
+    }
+  });
   return faults;
 }
 
-async function mockContactPost(page) {
+async function mockContactPost(page, options = {}) {
+  const requests = [];
+  let releaseHold;
+  const holdGate = options.hold
+    ? new Promise((resolve) => { releaseHold = resolve; })
+    : null;
+
   if (!mockContact) return;
   await page.route('https://script.google.com/macros/s/**/exec', async (route) => {
-    const data = new URLSearchParams(route.request().postData() || '');
-    const bookingUrl = data.get('meetingRequested') === 'yes'
-      ? 'https://calendar.app.google/TEST-MALONE-BOOKING'
-      : '';
+    const raw = route.request().postData() || '';
+    const data = new URLSearchParams(raw);
+    requests.push({ raw, data: Object.fromEntries(data.entries()) });
+
+    if (holdGate) await holdGate;
+    if (options.delayMs) {
+      await new Promise((resolve) => setTimeout(resolve, options.delayMs));
+    }
+    if (options.mode === 'no-callback') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: '<!doctype html><title>Contact response intentionally omitted</title>'
+      });
+      return;
+    }
+
+    const ok = options.mode !== 'error';
+    const bookingUrl = options.bookingUrl ?? (
+      data.get('meetingRequested') === 'yes'
+        ? 'https://calendar.app.google/TEST-MALONE-BOOKING'
+        : ''
+    );
     const payload = {
       type: 'malone-contact-result',
-      ok: true,
+      ok,
       requestId: String(data.get('requestId') || ''),
-      message: 'Message confirmed.',
-      ...(bookingUrl ? { bookingUrl } : {})
+      message: ok ? 'Message confirmed.' : (options.errorMessage || 'Synthetic recoverable error.'),
+      ...(ok && bookingUrl ? { bookingUrl } : {})
     };
     await route.fulfill({
       status: 200,
@@ -37,6 +74,32 @@ async function mockContactPost(page) {
         JSON.stringify(payload) + ',' + JSON.stringify(localOrigin) + ')</script>'
     });
   });
+
+  return {
+    requests,
+    release() {
+      releaseHold?.();
+    }
+  };
+}
+
+async function fillContactForm(page, overrides = {}) {
+  const values = {
+    name: 'Contact Desk Verification',
+    email: 'external.test@example.com',
+    organization: '',
+    category: 'Not sure — help me figure it out',
+    message: 'This is a complete Contact Desk acceptance message.',
+    ...overrides
+  };
+  await page.getByRole('textbox', { name: /^Name Required/ }).fill(values.name);
+  await page.getByRole('textbox', { name: /^Email Required/ }).fill(values.email);
+  await page.getByRole('textbox', { name: /Business \/ organization/i })
+    .fill(values.organization);
+  await page.getByRole('combobox', { name: /What can we help with/i })
+    .selectOption({ label: values.category });
+  await page.getByRole('textbox', { name: /Message \/ question/i }).fill(values.message);
+  return values;
 }
 
 test.describe('Malone consumer surface', () => {
@@ -289,50 +352,237 @@ test.describe('Malone consumer surface', () => {
     expect(faults).toEqual([]);
   });
 
-  test('contact validation, confirmation, and meeting path', async ({ page }, info) => {
+  test('contact validation, exact submission, routing guard, and reset', async ({ page }, info) => {
     test.skip(!mockContact, 'Runs only against the isolated contact mock.');
     const faults = observe(page);
-    await mockContactPost(page);
+    const mock = await mockContactPost(page, { hold: true });
     await page.goto('/contact', { waitUntil: 'networkidle' });
-    const submit = page.getByRole('button', { name: /route message/i });
+    const submit = page.locator('[data-submit-button]');
+    const form = page.locator('[data-contact-form]');
+    const state = page.locator('[data-state-rail]');
+    const status = page.locator('[data-form-status]');
+    const name = page.getByRole('textbox', { name: /^Name Required/ });
+    const email = page.getByRole('textbox', { name: /^Email Required/ });
+    const organization = page.getByRole('textbox', { name: /Business \/ organization/i });
+    const category = page.getByRole('combobox', { name: /What can we help with/i });
+    const messageField = page.getByRole('textbox', { name: /Message \/ question/i });
+    const meetingOption = page.locator('[data-meeting-option]');
+    const meetingControl = page.locator('input[name="meetingRequested"]');
+    const localNote = page.locator('[data-local-appointment-note]');
+
+    await expect(status).toHaveAttribute('role', 'status');
+    await expect(status).toHaveAttribute('aria-live', 'polite');
     await expect(submit).toBeEnabled();
     await submit.click();
+    await expect(state).toHaveAttribute('data-state', 'error');
+    await expect(status).toHaveText('Check the highlighted fields and try again.');
     await expect(page.getByText(/enter your name/i)).toBeVisible();
+    await expect(name).toBeFocused();
+    for (const field of [name, email, category, messageField]) {
+      await expect(field).toHaveAttribute('aria-invalid', 'true');
+    }
+    await expect(organization).toHaveAttribute('aria-invalid', 'false');
+    await expect(page.locator('[data-error-for="email"]')).toHaveText('Enter a valid email address.');
+    await expect(page.locator('[data-error-for="category"]')).toHaveText('Choose the closest category.');
+    await expect(page.locator('[data-error-for="message"]')).toContainText('Add at least 10 characters');
 
-    await page.getByRole('textbox', { name: /^Name Required/ }).fill('Double Verification Client');
-    await page.getByRole('textbox', { name: /^Email Required/ }).fill('external.test@example.com');
-    await page.getByRole('textbox', { name: /Business \/ organization/i }).fill('Consumer QA');
-    await page.getByRole('combobox', { name: /What can we help with/i })
-      .selectOption({ label: 'Computer / device help' });
+    const categories = [
+      'Local on-site IT support',
+      'Computer / device help',
+      'Website help',
+      'Business systems / automation / AI',
+      'Not sure — help me figure it out'
+    ];
+    expect(await category.locator('option:not([value=""])').allTextContents()).toEqual(categories);
+
+    await name.fill('Double Verification Client');
+    await email.fill('external.test@example.com');
+    await organization.fill('');
+    for (const label of categories) {
+      await category.selectOption({ label });
+      await expect(meetingOption).toBeHidden();
+      await expect(meetingControl).toBeDisabled();
+      if (label === 'Local on-site IT support') {
+        await expect(localNote).toBeVisible();
+      } else {
+        await expect(localNote).toBeHidden();
+      }
+      expect(await page.evaluate(() => {
+        const form = document.querySelector('[data-contact-form]');
+        return form instanceof HTMLFormElement
+          ? new FormData(form).get('meetingRequested')
+          : 'missing-form';
+      })).toBeNull();
+    }
+    const incidentCategory = 'Not sure — help me figure it out';
+    await category.selectOption({ label: incidentCategory });
+    expect(incidentCategory.codePointAt(9)).toBe(0x2014);
     const message = 'Contact Desk verification ' + info.project.name +
       ' pass ' + (info.repeatEachIndex + 1);
-    await page.getByRole('textbox', { name: /Message \/ question/i }).fill(message);
-    await submit.click();
+    await messageField.fill(message);
+    const requestIdBefore = await form.locator('[name="requestId"]').inputValue();
+    const startedAtBefore = await form.locator('[name="formStartedAt"]').inputValue();
+    await submit.click({ noWaitAfter: true });
+    await expect(state).toHaveAttribute('data-state', 'routing');
+    await expect(submit).toBeDisabled();
+    await expect(submit).toHaveAttribute('aria-busy', 'true');
+    await expect(submit).toContainText('Routing message');
+    await expect(status).toHaveText('Message routed. Waiting for confirmation.');
+    await expect.poll(() => mock.requests.length).toBe(1);
+
+    await page.evaluate(() => {
+      const current = document.querySelector('[data-contact-form]');
+      if (current instanceof HTMLFormElement) {
+        current.requestSubmit();
+        current.requestSubmit();
+      }
+    });
+    await name.focus();
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(250);
+    expect(mock.requests).toHaveLength(1);
+    expect(mock.requests[0].data.category).toBe(incidentCategory);
+    expect(mock.requests[0].raw).toContain('%E2%80%94');
+    expect(mock.requests[0].data.organization).toBe('');
+    expect(mock.requests[0].data).not.toHaveProperty('meetingRequested');
+
+    mock.release();
     await expect(page.getByRole('heading', { name: 'We received your message.' })).toBeVisible();
+    await expect(state).toHaveAttribute('data-state', 'confirmed');
+    await expect(status).toHaveText('Message confirmed. A copy is on its way to your inbox.');
+    await expect(submit).toHaveAttribute('aria-busy', 'false');
+    await expect(submit).toContainText('Route message');
     await expect(page.getByText(message, { exact: true })).toBeVisible();
     await expect(
       page.getByRole('link', { name: /schedule your discovery meeting/i })
     ).toHaveCount(0);
 
-    await page.reload({ waitUntil: 'networkidle' });
-    await page.getByRole('textbox', { name: /^Name Required/ }).fill('Meeting Verification Client');
-    await page.getByRole('textbox', { name: /^Email Required/ }).fill('meeting.test@example.com');
-    await page.getByRole('combobox', { name: /What can we help with/i })
-      .selectOption({ label: 'Website help' });
-    await page.getByRole('textbox', { name: /Message \/ question/i }).fill(
-      'Please route this discovery meeting request through the booking flow.'
-    );
-    await page.getByRole('checkbox', { name: /schedule an online discovery meeting/i }).check();
-    await page.getByRole('button', { name: /route message/i }).click();
-    await expect(page.getByRole('heading', { name: 'We received your message.' })).toBeVisible();
-    const booking = page.getByRole('link', {
-      name: /schedule your discovery meeting/i
+    await page.getByRole('button', { name: /send another message/i }).click();
+    await expect(form).toBeVisible();
+    await expect(page.locator('[data-confirmation]')).toBeHidden();
+    await expect(name).toBeFocused();
+    await expect(name).toHaveValue('');
+    await expect(email).toHaveValue('');
+    await expect(organization).toHaveValue('');
+    await expect(category).toHaveValue('');
+    await expect(messageField).toHaveValue('');
+    await expect(state).toHaveAttribute('data-state', 'input');
+    await expect(submit).toBeEnabled();
+    await expect(submit).toHaveAttribute('aria-busy', 'false');
+    const requestIdAfter = await form.locator('[name="requestId"]').inputValue();
+    const startedAtAfter = await form.locator('[name="formStartedAt"]').inputValue();
+    expect(requestIdAfter).not.toBe(requestIdBefore);
+    expect(startedAtAfter).not.toBe(startedAtBefore);
+
+    expect(faults).toEqual([]);
+  });
+
+  test('recoverable Contact Desk error preserves fields and envelope', async ({ page }) => {
+    test.skip(!mockContact, 'Runs only against the isolated contact mock.');
+    const faults = observe(page);
+    const mock = await mockContactPost(page, {
+      mode: 'error',
+      errorMessage: 'Synthetic recoverable error.'
     });
-    await expect(booking).toBeVisible();
-    await expect(booking).toHaveAttribute(
-      'href',
-      'https://calendar.app.google/TEST-MALONE-BOOKING'
-    );
+    await page.goto('/contact', { waitUntil: 'networkidle' });
+    const values = await fillContactForm(page, { organization: 'Recovery Lab' });
+    const form = page.locator('[data-contact-form]');
+    const requestId = await form.locator('[name="requestId"]').inputValue();
+    const startedAt = await form.locator('[name="formStartedAt"]').inputValue();
+
+    await page.getByRole('button', { name: /route message/i }).click();
+    await expect.poll(() => mock.requests.length).toBe(1);
+    await expect(page.locator('[data-state-rail]')).toHaveAttribute('data-state', 'error');
+    await expect(page.locator('[data-form-status]')).toHaveText('Synthetic recoverable error.');
+    await expect(page.getByRole('button', { name: /route message/i })).toBeEnabled();
+    await expect(page.getByRole('button', { name: /route message/i }))
+      .toHaveAttribute('aria-busy', 'false');
+    await expect(page.getByRole('textbox', { name: /^Name Required/ })).toHaveValue(values.name);
+    await expect(page.getByRole('textbox', { name: /^Email Required/ })).toHaveValue(values.email);
+    await expect(page.getByRole('textbox', { name: /Business \/ organization/i }))
+      .toHaveValue(values.organization);
+    await expect(page.getByRole('combobox', { name: /What can we help with/i }))
+      .toHaveValue(values.category);
+    await expect(page.getByRole('textbox', { name: /Message \/ question/i }))
+      .toHaveValue(values.message);
+    await expect(form.locator('[name="requestId"]')).toHaveValue(requestId);
+    await expect(form.locator('[name="formStartedAt"]')).toHaveValue(startedAt);
+    await expect(page.locator('[data-confirmation]')).toBeHidden();
+    expect(faults).toEqual([]);
+  });
+
+  test('untrusted callbacks are ignored and timeout preserves ambiguous submission', async ({ page }) => {
+    test.skip(!mockContact, 'Runs only against the isolated contact mock.');
+    test.slow();
+    const faults = observe(page);
+    const mock = await mockContactPost(page, { mode: 'no-callback' });
+    await page.goto('/contact', { waitUntil: 'networkidle' });
+    const values = await fillContactForm(page, { organization: 'Timeout Lab' });
+    const form = page.locator('[data-contact-form]');
+    const requestId = await form.locator('[name="requestId"]').inputValue();
+    const startedAt = await form.locator('[name="formStartedAt"]').inputValue();
+
+    await page.getByRole('button', { name: /route message/i }).click();
+    await expect.poll(() => mock.requests.length).toBe(1);
+    await expect(page.locator('[data-state-rail]')).toHaveAttribute('data-state', 'routing');
+    await page.evaluate((currentRequestId) => {
+      const payload = {
+        type: 'malone-contact-result',
+        requestId: currentRequestId,
+        ok: true,
+        message: 'Message confirmed.'
+      };
+      window.dispatchEvent(new MessageEvent('message', {
+        origin: 'https://attacker.example',
+        data: payload
+      }));
+      window.dispatchEvent(new MessageEvent('message', {
+        origin: 'https://synthetic-script.googleusercontent.com',
+        data: { ...payload, requestId: 'wrong-request-id-0000' }
+      }));
+    }, requestId);
+    await page.waitForTimeout(150);
+    await expect(page.locator('[data-state-rail]')).toHaveAttribute('data-state', 'routing');
+    await expect(form).toBeVisible();
+    await expect(page.locator('[data-confirmation]')).toBeHidden();
+
+    const ambiguity = 'We could not confirm whether your message arrived. Delivery may already have succeeded, so check your inbox before retrying or use the direct email path.';
+    await expect(page.locator('[data-form-status]')).toHaveText(ambiguity, { timeout: 17000 });
+    await expect(page.locator('[data-state-rail]')).toHaveAttribute('data-state', 'error');
+    await expect(page.getByRole('button', { name: /route message/i })).toBeEnabled();
+    await expect(page.getByRole('button', { name: /route message/i }))
+      .toHaveAttribute('aria-busy', 'false');
+    await expect(page.getByRole('textbox', { name: /^Name Required/ })).toHaveValue(values.name);
+    await expect(page.getByRole('textbox', { name: /^Email Required/ })).toHaveValue(values.email);
+    await expect(page.getByRole('textbox', { name: /Business \/ organization/i }))
+      .toHaveValue(values.organization);
+    await expect(page.getByRole('combobox', { name: /What can we help with/i }))
+      .toHaveValue(values.category);
+    await expect(page.getByRole('textbox', { name: /Message \/ question/i }))
+      .toHaveValue(values.message);
+    await expect(form.locator('[name="requestId"]')).toHaveValue(requestId);
+    await expect(form.locator('[name="formStartedAt"]')).toHaveValue(startedAt);
+    expect(mock.requests).toHaveLength(1);
+    expect(faults).toEqual([]);
+  });
+
+  test('malformed booking URL is never presented', async ({ page }) => {
+    test.skip(!mockContact, 'Runs only against the isolated contact mock.');
+    const faults = observe(page);
+    const mock = await mockContactPost(page, { bookingUrl: 'javascript:alert(1)' });
+    await page.goto('/contact', { waitUntil: 'networkidle' });
+    await fillContactForm(page, { category: 'Website help' });
+    await page.locator('input[name="meetingRequested"]').evaluate((control) => {
+      control.disabled = false;
+      control.checked = true;
+    });
+    await page.getByRole('button', { name: /route message/i }).click();
+    await expect.poll(() => mock.requests.length).toBe(1);
+    expect(mock.requests[0].data.meetingRequested).toBe('yes');
+    await expect(page.getByRole('heading', { name: 'We received your message.' })).toBeVisible();
+    const booking = page.locator('[data-booking-button]');
+    await expect(booking).toBeHidden();
+    await expect(booking).not.toHaveAttribute('href', /.+/);
     expect(faults).toEqual([]);
   });
 
