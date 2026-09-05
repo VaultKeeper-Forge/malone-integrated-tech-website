@@ -18,7 +18,10 @@ const MALONE_CONTACT_CONFIG = Object.freeze({
   maxPerEmailPerTenMinutes: 3,
   minimumFormAgeMs: 1500,
   maximumFormAgeMs: 7200000,
-  requestStateSeconds: 900
+  requestStateSeconds: 900,
+  inboundLeadContractVersion: 'mit-inbound-lead-v1',
+  privacyVersion: 'mit-contact-privacy-2026-09-04',
+  inboundLeadEndpoint: 'https://malone-client-operations-platform.vercel.app/api/inbound-leads'
 });
 
 function doGet() {
@@ -56,6 +59,9 @@ function doPost(e) {
       properties.getProperty('MALONE_NOTIFICATION_TO') || MALONE_CONTACT_CONFIG.notificationTo
     );
     const bookingUrl = normalizeUrl_(properties.getProperty('BOOKING_URL') || '');
+    const bridgeEnabled = String(properties.getProperty('MALONE_INBOUND_LEAD_BRIDGE_ENABLED') || '').toLowerCase() === 'true';
+    const bridgeEndpoint = normalizeUrl_(properties.getProperty('MALONE_INBOUND_LEAD_ENDPOINT') || MALONE_CONTACT_CONFIG.inboundLeadEndpoint);
+    const bridgeSecret = String(properties.getProperty('MALONE_INBOUND_LEAD_HMAC_SECRET') || '');
 
     if (!isEmail_(notificationTo)) {
       return contactError_('Message routing is temporarily unavailable. Please use the direct email path.', requestId);
@@ -63,6 +69,10 @@ function doPost(e) {
 
     if (payload.meetingRequested && !isGoogleBookingUrl_(bookingUrl)) {
       return contactError_('Online scheduling is being calibrated. Please uncheck the meeting request or use the direct email path.', requestId);
+    }
+
+    if (bridgeEnabled && (!isProductionLeadEndpoint_(bridgeEndpoint) || bridgeSecret.length < 32)) {
+      return contactError_('Message routing is temporarily unavailable. Please use the direct email path.', requestId);
     }
 
     lock = LockService.getScriptLock();
@@ -89,6 +99,11 @@ function doPost(e) {
       if (!rateResult.ok) {
         return contactError_(rateResult.message, requestId);
       }
+    }
+
+    if (bridgeEnabled && !existingState) {
+      recordInboundLead_(payload, submittedAt, bridgeEndpoint, bridgeSecret);
+      cache.put(requestKey, 'lead_recorded', MALONE_CONTACT_CONFIG.requestStateSeconds);
     }
 
     if (existingState !== 'owner_sent') {
@@ -120,7 +135,8 @@ function normalizePayload_(parameters) {
     organization: safeText_(parameters.organization),
     category: safeText_(parameters.category),
     message: safeMultiline_(parameters.message),
-    meetingRequested: String(parameters.meetingRequested || '').toLowerCase() === 'yes'
+    meetingRequested: String(parameters.meetingRequested || '').toLowerCase() === 'yes',
+    privacyConsent: String(parameters.privacyConsent || '').toLowerCase() === 'yes'
   };
 }
 
@@ -162,7 +178,91 @@ function validatePayload_(payload, submittedAt) {
     return invalid_('The message must contain between 10 and 5000 characters.');
   }
 
+  if (!payload.privacyConsent) {
+    return invalid_('Confirm the Privacy Policy notice before routing your message.');
+  }
+
   return { ok: true };
+}
+
+function recordInboundLead_(payload, submittedAt, endpoint, secret) {
+  const category = inboundCategoryContract_(payload.category);
+  if (!category) throw new Error('Inbound lead category mapping is unavailable.');
+
+  const body = JSON.stringify({
+    requestId: payload.requestId,
+    serviceLane: category.serviceLane,
+    serviceCategory: category.serviceCategory,
+    contactName: payload.name,
+    organizationName: payload.organization || null,
+    email: payload.email,
+    phone: null,
+    message: payload.message,
+    meetingInterest: payload.meetingRequested,
+    sourcePage: '/contact',
+    sourceCta: 'contact_desk_submit',
+    submittedAt: submittedAt.toISOString(),
+    privacyConsent: true,
+    privacyVersion: MALONE_CONTACT_CONFIG.privacyVersion,
+    contactConsent: true
+  });
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const signature = hex_(Utilities.computeHmacSha256Signature(
+    timestamp + '.' + body,
+    secret,
+    Utilities.Charset.UTF_8
+  ));
+  const response = UrlFetchApp.fetch(endpoint, {
+    method: 'post',
+    contentType: 'application/json',
+    payload: body,
+    headers: {
+      'X-Malone-Timestamp': timestamp,
+      'X-Malone-Signature': 'sha256=' + signature
+    },
+    muteHttpExceptions: true,
+    followRedirects: false
+  });
+  const status = Number(response.getResponseCode());
+  let receipt = null;
+  try {
+    receipt = JSON.parse(response.getContentText());
+  } catch (error) {
+    throw new Error('Inbound lead provider returned an unreadable receipt.');
+  }
+  if (
+    (status !== 200 && status !== 201) ||
+    !receipt ||
+    receipt.state !== 'RECORDED' ||
+    receipt.contractVersion !== MALONE_CONTACT_CONFIG.inboundLeadContractVersion ||
+    !receipt.data ||
+    receipt.data.requestId !== payload.requestId
+  ) {
+    throw new Error('Inbound lead provider receipt did not match the submitted request.');
+  }
+}
+
+function inboundCategoryContract_(category) {
+  const categoryIndex = MALONE_CONTACT_CONFIG.allowedCategories.indexOf(category);
+  if (categoryIndex === 0) return { serviceLane: 'fix_it', serviceCategory: 'local_onsite_it_support' };
+  if (categoryIndex === 1) return { serviceLane: 'fix_it', serviceCategory: 'computer_device_help' };
+  if (categoryIndex === 2) return { serviceLane: 'build_it', serviceCategory: 'website_help' };
+  if (categoryIndex === 3 || (categoryIndex >= 5 && categoryIndex <= 9)) {
+    return { serviceLane: 'connect_it', serviceCategory: 'business_systems_automation_ai' };
+  }
+  if (categoryIndex === 4 || categoryIndex === 10) return { serviceLane: 'unsure', serviceCategory: 'unsure' };
+  return null;
+}
+
+function isProductionLeadEndpoint_(value) {
+  return value === MALONE_CONTACT_CONFIG.inboundLeadEndpoint;
+}
+
+function hex_(bytes) {
+  return bytes.map(function(byte) {
+    const normalized = byte < 0 ? byte + 256 : byte;
+    return ('0' + normalized.toString(16)).slice(-2);
+  }).join('');
 }
 
 function invalid_(message) {

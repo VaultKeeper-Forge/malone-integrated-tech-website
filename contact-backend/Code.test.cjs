@@ -27,6 +27,9 @@ const defaultProps = Object.freeze({
   MALONE_NOTIFICATION_TO: 'curtis@maloneintegratedtech.com',
   ALLOWED_ORIGIN: 'https://www.maloneintegratedtech.com',
   BOOKING_URL: 'https://calendar.app.google/TEST-MALONE-BOOKING',
+  MALONE_INBOUND_LEAD_BRIDGE_ENABLED: 'true',
+  MALONE_INBOUND_LEAD_ENDPOINT: 'https://malone-client-operations-platform.vercel.app/api/inbound-leads',
+  MALONE_INBOUND_LEAD_HMAC_SECRET: 'test-secret-with-at-least-thirty-two-bytes',
 });
 const props = { ...defaultProps };
 const cache = new Map();
@@ -35,6 +38,7 @@ const sent = [];
 const mailAttempts = [];
 const quotaEvents = [];
 const logs = [];
+const inboundRequests = [];
 const htmlOutputs = [];
 const lockStats = { gets: 0, tries: 0, releases: 0, timeouts: [] };
 let cacheServiceGets = 0;
@@ -42,6 +46,8 @@ let quota = 1000;
 let lockAvailable = true;
 let lockHeld = false;
 let failRecipientOnce = '';
+let inboundResponseCode = 201;
+let inboundResponseOverride = null;
 
 function requireLock(operation) {
   assert.equal(lockHeld, true, `${operation} occurred without the script lock.`);
@@ -129,6 +135,27 @@ const context = {
       sent.push(mail);
     },
   },
+  UrlFetchApp: {
+    fetch(url, options) {
+      requireLock('UrlFetchApp.fetch');
+      const parsed = JSON.parse(options.payload);
+      inboundRequests.push({ url, options: { ...options, headers: { ...options.headers } }, parsed, lockHeld });
+      const body = inboundResponseOverride || {
+        state: 'RECORDED',
+        contractVersion: 'mit-inbound-lead-v1',
+        data: {
+          leadId: '00000000-0000-4000-8000-000000000001',
+          requestId: parsed.requestId,
+          status: 'new',
+          idempotentReplay: inboundResponseCode === 200,
+        },
+      };
+      return {
+        getResponseCode: () => inboundResponseCode,
+        getContentText: () => JSON.stringify(body),
+      };
+    },
+  },
   HtmlService: {
     XFrameOptionsMode: { ALLOWALL: 'ALLOWALL' },
     createHtmlOutput(value) {
@@ -158,6 +185,9 @@ const context = {
     formatDate: (date) => new NativeDate(date).toISOString(),
     computeDigest: (_algorithm, value) => [
       ...crypto.createHash('sha256').update(String(value)).digest(),
+    ],
+    computeHmacSha256Signature: (value, secret) => [
+      ...crypto.createHmac('sha256', String(secret)).update(String(value)).digest(),
     ],
   },
   Session: { getScriptTimeZone: () => 'America/Los_Angeles' },
@@ -206,6 +236,7 @@ for (const field of [
   'requestId',
   'formStartedAt',
   'meetingRequested',
+  'privacyConsent',
 ]) {
   assert(html.includes(`name="${field}"`), `Built form missing ${field}.`);
 }
@@ -219,6 +250,11 @@ assert.match(
   /<input[^>]*name="meetingRequested"[^>]*disabled[^>]*>/i,
   'Production build must disable online meeting requests until explicitly enabled.'
 );
+assert.match(
+  html,
+  /<input[^>]*name="privacyConsent"[^>]*required[^>]*>/i,
+  'Production build must require the published privacy notice.'
+);
 
 function reset() {
   cache.clear();
@@ -227,6 +263,7 @@ function reset() {
   mailAttempts.length = 0;
   quotaEvents.length = 0;
   logs.length = 0;
+  inboundRequests.length = 0;
   htmlOutputs.length = 0;
   lockStats.gets = 0;
   lockStats.tries = 0;
@@ -237,6 +274,8 @@ function reset() {
   lockAvailable = true;
   lockHeld = false;
   failRecipientOnce = '';
+  inboundResponseCode = 201;
+  inboundResponseOverride = null;
   nowMs = fixedNowMs;
   for (const key of Object.keys(props)) delete props[key];
   Object.assign(props, defaultProps);
@@ -253,6 +292,7 @@ function base(overrides = {}) {
     formId: 'malone-contact-v1',
     requestId: crypto.randomUUID(),
     formStartedAt: String(nowMs - 5000),
+    privacyConsent: 'yes',
     ...overrides,
   };
 }
@@ -417,9 +457,25 @@ const standardRequest = base({
   message: 'Please review <script>alert("x")</script> & \'quoted\' content safely.',
 });
 const standardResponse = post(standardRequest);
-assert.equal(standardResponse.payload.ok, true);
+assert.equal(inboundRequests.length, 1, 'Structured lead request was not attempted before the public failure response.');
+assert.equal(standardResponse.payload.ok, true, standardResponse.payload.message);
 assert.equal(standardResponse.payload.requestId, standardRequest.requestId);
 assert.equal(sent.length, 2, 'Valid standard submission must send exactly two emails.');
+assert.equal(inboundRequests[0].url, defaultProps.MALONE_INBOUND_LEAD_ENDPOINT);
+assert.equal(inboundRequests[0].parsed.requestId, standardRequest.requestId);
+assert.equal(inboundRequests[0].parsed.serviceLane, 'unsure');
+assert.equal(inboundRequests[0].parsed.serviceCategory, 'unsure');
+assert.equal(inboundRequests[0].parsed.privacyConsent, true);
+assert.equal(inboundRequests[0].parsed.contactConsent, true);
+assert.equal(inboundRequests[0].parsed.privacyVersion, 'mit-contact-privacy-2026-09-04');
+assert.equal(inboundRequests[0].parsed.sourcePage, '/contact');
+assert.equal(inboundRequests[0].parsed.sourceCta, 'contact_desk_submit');
+const inboundTimestamp = inboundRequests[0].options.headers['X-Malone-Timestamp'];
+const expectedInboundSignature = crypto
+  .createHmac('sha256', defaultProps.MALONE_INBOUND_LEAD_HMAC_SECRET)
+  .update(`${inboundTimestamp}.${inboundRequests[0].options.payload}`)
+  .digest('hex');
+assert.equal(inboundRequests[0].options.headers['X-Malone-Signature'], `sha256=${expectedInboundSignature}`);
 const owner = sent.find((mail) => recipient(mail) === defaultProps.MALONE_NOTIFICATION_TO);
 const customer = sent.find((mail) => recipient(mail) === standardRequest.email);
 assert(owner && customer, 'Owner and customer mail paths must both run.');
@@ -541,6 +597,11 @@ expectRejected(
   { formId: `malone-contact-v1${'x'.repeat(64)}` },
   'The contact form version is not recognized. Please reload the page.'
 );
+expectRejected(
+  'missing privacy consent',
+  { privacyConsent: '' },
+  'Confirm the Privacy Policy notice before routing your message.'
+);
 
 expectAccepted('minimum form age', { formStartedAt: String(nowMs - 1500) });
 expectAccepted('maximum form age', { formStartedAt: String(nowMs - 7200000) });
@@ -659,6 +720,7 @@ assert.equal(firstDuplicateResponse.payload.ok, true);
 assert.equal(secondDuplicateResponse.payload.ok, true);
 assert.equal(sent.length, 2, 'Duplicate requestId sent duplicate mail.');
 assert.equal(mailAttempts.length, 2, 'Duplicate requestId attempted duplicate mail.');
+assert.equal(inboundRequests.length, 1, 'Duplicate requestId recorded a duplicate lead request.');
 assert.equal(lockStats.gets, 2);
 assert.equal(lockStats.releases, 2);
 assert.equal(cache.get(requestKey(duplicateRequest)), 'complete');
@@ -693,6 +755,7 @@ assert.equal(sent.filter((mail) => mail.to === defaultProps.MALONE_NOTIFICATION_
 assert.equal(sent.filter((mail) => mail.to === partialRequest.email).length, 1);
 assert.equal(mailAttempts.filter((mail) => mail.to === defaultProps.MALONE_NOTIFICATION_TO).length, 1);
 assert.equal(mailAttempts.filter((mail) => mail.to === partialRequest.email).length, 2);
+assert.equal(inboundRequests.length, 1, 'Partial mail retry repeated the lead-ingress request.');
 assert.equal(lockStats.gets, 2);
 assert.equal(lockStats.releases, 2);
 const partialRateEntries = [...cache.entries()].filter(([key]) => key.startsWith('rate:'));
@@ -747,6 +810,34 @@ assert.equal([...cache.keys()].filter((key) => key.startsWith('request:')).lengt
 assert.equal(lockStats.releases, 1);
 assertNoRecipientLeak(quotaResponse);
 
+// The bridge remains independently switchable and preserves the existing mail path while disabled.
+reset();
+props.MALONE_INBOUND_LEAD_BRIDGE_ENABLED = 'false';
+const disabledBridgeResponse = post(base());
+assert.equal(disabledBridgeResponse.payload.ok, true);
+assert.equal(inboundRequests.length, 0);
+assert.equal(sent.length, 2);
+
+// Enabled bridge configuration and receipt mismatches fail closed before mail is sent.
+reset();
+delete props.MALONE_INBOUND_LEAD_HMAC_SECRET;
+const missingBridgeSecretResponse = post(base());
+assert.equal(missingBridgeSecretResponse.payload.ok, false);
+assert.equal(sent.length, 0);
+assert.equal(inboundRequests.length, 0);
+
+reset();
+inboundResponseOverride = {
+  state: 'RECORDED',
+  contractVersion: 'mit-inbound-lead-v1',
+  data: { requestId: 'different-request-id', status: 'new', idempotentReplay: false },
+};
+const mismatchedBridgeResponse = post(base());
+assert.equal(mismatchedBridgeResponse.payload.ok, false);
+assert.equal(inboundRequests.length, 1);
+assert.equal(sent.length, 0);
+assert.equal([...cache.keys()].filter((key) => key.startsWith('request:')).length, 0);
+
 process.stdout.write(JSON.stringify({
   status: 'PASS',
   categoriesTested: categories.length,
@@ -767,5 +858,9 @@ process.stdout.write(JSON.stringify({
   globalRateLimit: true,
   quotaGuard: true,
   rawCacheOrLogs: false,
+  structuredLeadBridge: true,
+  hmacContract: true,
+  bridgeDisabledPreservesMail: true,
+  bridgeReceiptMismatchFailsClosed: true,
   privateRecipientExposed: false,
 }, null, 2));

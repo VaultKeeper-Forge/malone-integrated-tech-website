@@ -118,11 +118,20 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
       </span>
     </label>
 
+    <label class="contact-consent">
+      <input type="checkbox" name="privacyConsent" value="yes" required />
+      <span>
+        I agree that Malone Integrated Tech may use and retain this request as described in the
+        {' '}<a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+      </span>
+      <small data-error-for="privacyConsent"></small>
+    </label>
+
     <div class="contact-form__footer">
       <button type="submit" class="signal-button contact-submit" data-submit-button>
         <b data-submit-label>Route message</b><span aria-hidden="true">+</span>
       </button>
-      <p>Messages are emailed directly. Raw form submissions are not retained by the website.</p>
+      <p>Messages are emailed directly and recorded in Malone Client Operations for up to 90 days while the request is reviewed.</p>
     </div>
 
     <div class="contact-form__status" data-form-status role="status" aria-live="polite"></div>
@@ -247,13 +256,15 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
       const organization = form.elements.namedItem('organization') as HTMLInputElement;
       const category = form.elements.namedItem('category') as HTMLSelectElement;
       const message = form.elements.namedItem('message') as HTMLTextAreaElement;
+      const privacyConsent = form.elements.namedItem('privacyConsent') as HTMLInputElement;
 
       const failures = [
         [name, name.value.trim().length < 2 ? 'Enter your name.' : ''],
         [email, !email.validity.valid || !email.value.trim() ? 'Enter a valid email address.' : ''],
         [organization, organization.value.trim().length > 160 ? 'Keep the organization under 160 characters.' : ''],
         [category, !category.value ? 'Choose the closest category.' : ''],
-        [message, message.value.trim().length < 10 ? 'Add at least 10 characters so we can understand the request.' : '']
+        [message, message.value.trim().length < 10 ? 'Add at least 10 characters so we can understand the request.' : ''],
+        [privacyConsent, !privacyConsent.checked ? 'Confirm the Privacy Policy notice before routing your message.' : '']
       ] as const;
 
       const firstFailure = failures.find(([, error]) => Boolean(error));
