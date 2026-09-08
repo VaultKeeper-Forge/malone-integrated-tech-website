@@ -108,7 +108,7 @@ export const siteCopy: SiteCopy = {
       id: 'business-systems',
       title: 'Connect it',
       description:
-        'Portals, workflow automation, AI, ForgeMesh, and custom business systems that connect the tools you already use.',
+        'Portals, workflow automation, AI, and custom business systems that connect the tools you already use.',
       status: 'Business systems',
       href: '/services#operations',
       cta: 'See connected systems'
