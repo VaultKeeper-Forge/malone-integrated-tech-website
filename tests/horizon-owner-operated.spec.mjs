@@ -101,7 +101,7 @@ test.describe('Horizon Creations owner-operated production system', () => {
       const triggerBox = await trigger.boundingBox();
       expect(triggerBox).not.toBeNull();
       const protectedCopy = [
-        feature.locator('h3'),
+        feature.locator('h2'),
         feature.locator('.featured-work-feature__summary'),
         feature.locator('.featured-work-feature__live'),
         feature.locator('.featured-work-feature__cta')

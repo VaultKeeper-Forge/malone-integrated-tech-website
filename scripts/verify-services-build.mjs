@@ -30,7 +30,8 @@ assert.equal(
 );
 
 for (const required of [
-  'Useful systems, clearly scoped.',
+  'Small Business IT Support and Websites in Amador County',
+  'Available in Amador County, Calaveras County, and nearby foothill communities',
   'Business Systems Map',
   '$250',
   'Local On-Site IT Support',

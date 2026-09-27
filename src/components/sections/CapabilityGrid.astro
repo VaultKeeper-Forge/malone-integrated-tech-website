@@ -22,7 +22,7 @@ const { items } = Astro.props as Props;
         {index === 1 && <svg viewBox="0 0 72 72"><circle cx="36" cy="24" r="10" /><path d="M18 58c2-13 9-20 18-20s16 7 18 20M8 36h11M53 36h11M13 31v10M59 31v10" /></svg>}
         {index === 2 && <svg viewBox="0 0 72 72"><circle cx="16" cy="20" r="5" /><circle cx="56" cy="18" r="5" /><circle cx="58" cy="54" r="5" /><circle cx="18" cy="55" r="5" /><circle cx="36" cy="36" r="8" /><path d="M21 22l9 9M51 22l-9 9M52 51l-10-9M22 51l9-9" /></svg>}
       </div>
-      <h3>{item.title}</h3>
+      <h3>{item.id === 'website' ? 'Build a small-business website' : item.id === 'technology-help' ? 'Fix computers, Wi-Fi, and devices' : 'Connect your business tools'}</h3>
       <p>{item.description}</p>
       {item.prices && item.prices.length > 0 && (
         <p class="capability-node__prices" aria-label="Website starting prices">

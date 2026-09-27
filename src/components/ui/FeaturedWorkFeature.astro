@@ -51,7 +51,9 @@ const isActiveClient = work.kind === 'active-client';
       <span>{work.statusLabel}</span>
     </div>
     <p class="featured-work-feature__location active-client-feature__location">{work.location}</p>
-    <h3 id={`featured-work-${work.id}`}>{work.name}</h3>
+    {work.id === 'red-barons' || work.id === 'horizon-creations'
+      ? <h2 id={`featured-work-${work.id}`}>{work.name}</h2>
+      : <h3 id={`featured-work-${work.id}`}>{work.name}</h3>}
     <p class="featured-work-feature__summary active-client-feature__summary">{compact ? work.frontSummary ?? work.summary : work.summary}</p>
     {!compact && <p class="featured-work-feature__note active-client-feature__note">{work.currentNote}</p>}
     <p class="featured-work-feature__live active-client-feature__live">{compact ? work.frontNote ?? work.liveSurfaceNote : work.liveSurfaceNote}</p>

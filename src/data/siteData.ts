@@ -1,4 +1,4 @@
-﻿export type Severity = 'production' | 'pilot' | 'research';
+export type Severity = 'production' | 'pilot' | 'research';
 
 export interface Capability {
   id: string;
@@ -92,7 +92,7 @@ export const siteCopy: SiteCopy = {
       description:
         'Professional websites, rebuilds, updates, and client-facing digital experiences for local and home businesses.',
       status: 'Websites',
-      href: '/services#digital-presence',
+      href: '/services/#digital-presence',
       cta: 'See website options'
     },
     {
@@ -101,7 +101,7 @@ export const siteCopy: SiteCopy = {
       description:
         'Computer and device help, troubleshooting, setup, tune-ups, accounts, files, access, and in-home support.',
       status: 'Technology help',
-      href: '/services#start',
+      href: '/services/#start',
       cta: 'Find the right first step'
     },
     {
@@ -110,7 +110,7 @@ export const siteCopy: SiteCopy = {
       description:
         'Portals, workflow automation, AI, and custom business systems that connect the tools you already use.',
       status: 'Business systems',
-      href: '/services#operations',
+      href: '/services/#operations',
       cta: 'See connected systems'
     },
   ],
