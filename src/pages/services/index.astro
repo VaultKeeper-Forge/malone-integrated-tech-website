@@ -13,8 +13,8 @@ import {
 ---
 
 <BaseLayout
-  title="Small Business Technology Services | Malone Integrated Tech"
-  description="Clear starting prices for local on-site IT support, websites, connected offices, workflow automation, AI assistants, secure client portals, and ongoing systems care."
+  title="Amador County IT Support & Websites | Malone Integrated Tech"
+  description="Local IT support in Amador and Calaveras counties, small-business websites, and connected systems. See starting prices and request a fit check."
   currentPath="/services"
 >
   <TopNav />
@@ -22,7 +22,7 @@ import {
     <section class="section-shell services-hero" aria-labelledby="services-title">
       <div class="services-hero__copy">
         <p class="eyebrow">Services &amp; starting prices</p>
-        <h1 id="services-title">Useful systems, clearly scoped.</h1>
+        <h1 id="services-title">Small Business IT Support and Websites in Amador County</h1>
         <p class="services-hero__lead">
           Start small, solve the right problem, and expand only when the next layer earns its place.
           These prices are practical planning numbers—not bait for a mystery sales call.
@@ -60,7 +60,7 @@ import {
           </div>
           <div>
             <p class="eyebrow">{category.eyebrow}</p>
-            <h2 id={`${category.id}-title`}>{category.title}</h2>
+            <h2 id={`${category.id}-title`}>{category.id === 'start' ? 'Local IT help and technology assessments' : category.id === 'digital-presence' ? 'Small-business websites and client portals' : 'Connected business systems and automation'}</h2>
             <p>{category.summary}</p>
           </div>
         </header>
@@ -75,7 +75,7 @@ import {
         <header class="services-care__header">
           <div>
             <p class="eyebrow">Ongoing care</p>
-            <h2 id="care-title">Keep the system useful after launch</h2>
+            <h2 id="care-title">Website and system care</h2>
           </div>
           <p>
             Care plans are optional and month-to-month after the initial build. They cover defined
@@ -99,7 +99,7 @@ import {
       <header class="services-addons__header">
         <div>
           <p class="eyebrow">Common additions</p>
-          <h2 id="addons-title">Add only what the job actually needs</h2>
+          <h2 id="addons-title">Optional setup, training, and project additions</h2>
         </div>
         <p>These can be attached to a project when they fit the approved scope.</p>
       </header>
@@ -119,7 +119,7 @@ import {
     <section class="section-shell services-terms" id="terms" aria-labelledby="terms-title">
       <div class="services-terms__copy">
         <p class="eyebrow">Straightforward buying terms</p>
-        <h2 id="terms-title">No surprise meter running in the background</h2>
+        <h2 id="terms-title">Pricing, payments, and ownership</h2>
         <p>
           A proposal turns the planning price into an exact scope. If the job changes, the price
           changes only after the new work is described and approved.
@@ -135,7 +135,7 @@ import {
     <section class="section-shell services-cta" aria-labelledby="services-cta-title">
       <div>
         <p class="eyebrow">Start with the problem</p>
-        <h2 id="services-cta-title">Not sure which package fits?</h2>
+        <h2 id="services-cta-title">Not sure which service fits?</h2>
         <p>Tell us what is frustrating, slow, disconnected, or newly possible. We will identify the smallest useful next move.</p>
       </div>
       <a href={withBase('/contact')} class="signal-button" data-cta="services_contact">

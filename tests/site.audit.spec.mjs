@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
 import path from 'node:path';
 
-const routes = ['/', '/services', '/research', '/projects', '/contact'];
+const routes = ['/', '/services/', '/research/', '/projects/', '/contact/'];
 const productionOrigin = 'https://www.maloneintegratedtech.com';
 const screenshotRoot = process.env.MALONE_SCREENSHOT_DIR || 'C:/tmp/malone-site-screenshots';
 const mockContact = process.env.CONTACT_MODE === 'mock';
-const localOrigin = new URL(process.env.SITE_BASE_URL || 'http://127.0.0.1:4334').origin;
+const localOrigin = new URL(process.env.SITE_BASE_URL || 'http://127.0.0.1:4344').origin;
+const testEndpoint = 'https://script.google.com/macros/s/TEST-MALONE-CONTACT-VERIFICATION/exec';
 
 function observe(page) {
   const faults = [];
@@ -70,7 +71,7 @@ async function mockContactPost(page, options = {}) {
     await route.fulfill({
       status: 200,
       contentType: 'text/html',
-      body: '<!doctype html><script>window.top.postMessage(' +
+      body: '<!doctype html><script>parent.postMessage(' +
         JSON.stringify(payload) + ',' + JSON.stringify(localOrigin) + ')</script>'
     });
   });
@@ -99,10 +100,28 @@ async function fillContactForm(page, overrides = {}) {
   await page.getByRole('combobox', { name: /What can we help with/i })
     .selectOption({ label: values.category });
   await page.getByRole('textbox', { name: /Message \/ question/i }).fill(values.message);
+  await page.locator('input[name="privacyConsent"]').check();
   return values;
 }
 
 test.describe('Malone consumer surface', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.route('https://script.google.com/macros/s/**/exec', async (route) => {
+      const raw = route.request().postData() || '';
+      const data = new URLSearchParams(raw);
+      await route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: '<!doctype html><script>parent.postMessage(' + JSON.stringify({
+          type: 'malone-contact-result',
+          ok: true,
+          requestId: String(data.get('requestId') || ''),
+          message: 'Message confirmed.'
+        }) + ',' + JSON.stringify(localOrigin) + ')</script>'
+      });
+    });
+  });
+
   for (const route of routes) {
     test(route + ' route, links, metadata, visuals', async ({ page, request }, testInfo) => {
       const faults = observe(page);
@@ -247,7 +266,7 @@ test.describe('Malone consumer surface', () => {
     await page.goto('/services', { waitUntil: 'networkidle' });
 
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-      'Useful systems, clearly scoped.'
+      'Small Business IT Support and Websites in Amador County'
     );
     await expect(page.locator('[data-service-offer]')).toHaveCount(15);
     await expect(page.locator('[data-care-plan]')).toHaveCount(3);
@@ -265,10 +284,10 @@ test.describe('Malone consumer surface', () => {
     await expect(page.locator('[data-care-plan="site-care"]')).toContainText('$100 / month');
     await expect(page.getByRole('link', { name: /request a fit check/i })).toHaveAttribute(
       'href',
-      '/contact'
+      '/contact/'
     );
     await expect(page.getByRole('link', { name: /request a local appointment/i }))
-      .toHaveAttribute('href', '/contact?category=local-onsite-support');
+      .toHaveAttribute('href', '/contact/?category=local-onsite-support');
     await expect(page.locator('body')).not.toContainText('Rescue Session');
     await expect(page.locator('body')).not.toContainText(
       /internal floor|target margin|discount cap|labor cost|estimated hours/i
@@ -281,6 +300,9 @@ test.describe('Malone consumer surface', () => {
       return itemList?.itemListElement?.map((entry) => entry.item) || [];
     });
     expect(services).toHaveLength(18);
+    expect(services.find((service) => service.name === 'Local On-Site IT Support')?.areaServed)
+      .toEqual(['Amador County, California', 'Calaveras County, California', 'nearby foothill communities']);
+    expect(services.find((service) => service.name === 'Business Systems Map')).not.toHaveProperty('areaServed');
     expect(services.find((service) => service.name === 'Business Systems Map')?.offers?.price)
       .toBe(250);
     expect(
@@ -293,7 +315,7 @@ test.describe('Malone consumer surface', () => {
     const faults = observe(page);
     await page.goto('/services', { waitUntil: 'networkidle' });
     await page.getByRole('link', { name: /request a local appointment/i }).click();
-    await expect(page).toHaveURL(/\/contact\?category=local-onsite-support$/);
+    await expect(page).toHaveURL(/\/contact\/?\?category=local-onsite-support$/);
     await expect(page.locator('select[name="category"]')).toHaveValue('Local on-site IT support');
     await expect(page.locator('[data-local-appointment-note]')).toBeVisible();
     await expect(page.locator('[data-local-appointment-note]')).toContainText(
@@ -311,7 +333,7 @@ test.describe('Malone consumer surface', () => {
     test.skip(!info.project.name.startsWith('desktop'), 'Desktop interaction matrix.');
     const faults = observe(page);
     await page.goto('/', { waitUntil: 'networkidle' });
-    for (const href of ['/services', '/research', '/projects', '/contact']) {
+    for (const href of ['/services/', '/research/', '/projects/', '/contact/']) {
       const probe = await context.newPage();
       const probeFaults = observe(probe);
       await probe.goto('/');
@@ -347,7 +369,7 @@ test.describe('Malone consumer surface', () => {
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    await page.locator('a[href="/contact"]:visible').first().click();
+    await page.locator('a[href="/contact/"]:visible').first().click();
     await expect(page).toHaveURL(new RegExp('/contact/?$'));
     expect(faults).toEqual([]);
   });
@@ -356,7 +378,7 @@ test.describe('Malone consumer surface', () => {
     test.skip(!mockContact, 'Runs only against the isolated contact mock.');
     const faults = observe(page);
     const mock = await mockContactPost(page, { hold: true });
-    await page.goto('/contact', { waitUntil: 'networkidle' });
+    await page.goto('/contact/', { waitUntil: 'networkidle' });
     const submit = page.locator('[data-submit-button]');
     const form = page.locator('[data-contact-form]');
     const state = page.locator('[data-state-rail]');
@@ -398,6 +420,7 @@ test.describe('Malone consumer surface', () => {
     await name.fill('Double Verification Client');
     await email.fill('external.test@example.com');
     await organization.fill('');
+    await page.locator('input[name="privacyConsent"]').check();
     for (const label of categories) {
       await category.selectOption({ label });
       await expect(meetingOption).toBeHidden();
@@ -451,7 +474,7 @@ test.describe('Malone consumer surface', () => {
     await expect(state).toHaveAttribute('data-state', 'confirmed');
     await expect(status).toHaveText('Message confirmed. A copy is on its way to your inbox.');
     await expect(submit).toHaveAttribute('aria-busy', 'false');
-    await expect(submit).toContainText('Route message');
+    await expect(submit).toContainText('Send inquiry');
     await expect(page.getByText(message, { exact: true })).toBeVisible();
     await expect(
       page.getByRole('link', { name: /schedule your discovery meeting/i })
@@ -484,18 +507,18 @@ test.describe('Malone consumer surface', () => {
       mode: 'error',
       errorMessage: 'Synthetic recoverable error.'
     });
-    await page.goto('/contact', { waitUntil: 'networkidle' });
+    await page.goto('/contact/', { waitUntil: 'networkidle' });
     const values = await fillContactForm(page, { organization: 'Recovery Lab' });
     const form = page.locator('[data-contact-form]');
     const requestId = await form.locator('[name="requestId"]').inputValue();
     const startedAt = await form.locator('[name="formStartedAt"]').inputValue();
 
-    await page.getByRole('button', { name: /route message/i }).click();
+    await page.getByRole('button', { name: /send inquiry/i }).click();
     await expect.poll(() => mock.requests.length).toBe(1);
     await expect(page.locator('[data-state-rail]')).toHaveAttribute('data-state', 'error');
     await expect(page.locator('[data-form-status]')).toHaveText('Synthetic recoverable error.');
-    await expect(page.getByRole('button', { name: /route message/i })).toBeEnabled();
-    await expect(page.getByRole('button', { name: /route message/i }))
+    await expect(page.getByRole('button', { name: /send inquiry/i })).toBeEnabled();
+    await expect(page.getByRole('button', { name: /send inquiry/i }))
       .toHaveAttribute('aria-busy', 'false');
     await expect(page.getByRole('textbox', { name: /^Name Required/ })).toHaveValue(values.name);
     await expect(page.getByRole('textbox', { name: /^Email Required/ })).toHaveValue(values.email);
@@ -516,13 +539,13 @@ test.describe('Malone consumer surface', () => {
     test.slow();
     const faults = observe(page);
     const mock = await mockContactPost(page, { mode: 'no-callback' });
-    await page.goto('/contact', { waitUntil: 'networkidle' });
+    await page.goto('/contact/', { waitUntil: 'networkidle' });
     const values = await fillContactForm(page, { organization: 'Timeout Lab' });
     const form = page.locator('[data-contact-form]');
     const requestId = await form.locator('[name="requestId"]').inputValue();
     const startedAt = await form.locator('[name="formStartedAt"]').inputValue();
 
-    await page.getByRole('button', { name: /route message/i }).click();
+    await page.getByRole('button', { name: /send inquiry/i }).click();
     await expect.poll(() => mock.requests.length).toBe(1);
     await expect(page.locator('[data-state-rail]')).toHaveAttribute('data-state', 'routing');
     await page.evaluate((currentRequestId) => {
@@ -540,6 +563,14 @@ test.describe('Malone consumer surface', () => {
         origin: 'https://synthetic-script.googleusercontent.com',
         data: { ...payload, requestId: 'wrong-request-id-0000' }
       }));
+      const unrelatedFrame = document.createElement('iframe');
+      document.body.append(unrelatedFrame);
+      window.dispatchEvent(new MessageEvent('message', {
+        origin: 'https://synthetic-script.googleusercontent.com',
+        source: unrelatedFrame.contentWindow,
+        data: payload
+      }));
+      unrelatedFrame.remove();
     }, requestId);
     await page.waitForTimeout(150);
     await expect(page.locator('[data-state-rail]')).toHaveAttribute('data-state', 'routing');
@@ -549,8 +580,8 @@ test.describe('Malone consumer surface', () => {
     const ambiguity = 'We could not confirm whether your message arrived. Delivery may already have succeeded, so check your inbox before retrying or use the direct email path.';
     await expect(page.locator('[data-form-status]')).toHaveText(ambiguity, { timeout: 17000 });
     await expect(page.locator('[data-state-rail]')).toHaveAttribute('data-state', 'error');
-    await expect(page.getByRole('button', { name: /route message/i })).toBeEnabled();
-    await expect(page.getByRole('button', { name: /route message/i }))
+    await expect(page.getByRole('button', { name: /send inquiry/i })).toBeEnabled();
+    await expect(page.getByRole('button', { name: /send inquiry/i }))
       .toHaveAttribute('aria-busy', 'false');
     await expect(page.getByRole('textbox', { name: /^Name Required/ })).toHaveValue(values.name);
     await expect(page.getByRole('textbox', { name: /^Email Required/ })).toHaveValue(values.email);
@@ -570,13 +601,13 @@ test.describe('Malone consumer surface', () => {
     test.skip(!mockContact, 'Runs only against the isolated contact mock.');
     const faults = observe(page);
     const mock = await mockContactPost(page, { bookingUrl: 'javascript:alert(1)' });
-    await page.goto('/contact', { waitUntil: 'networkidle' });
+    await page.goto('/contact/', { waitUntil: 'networkidle' });
     await fillContactForm(page, { category: 'Website help' });
     await page.locator('input[name="meetingRequested"]').evaluate((control) => {
       control.disabled = false;
       control.checked = true;
     });
-    await page.getByRole('button', { name: /route message/i }).click();
+    await page.getByRole('button', { name: /send inquiry/i }).click();
     await expect.poll(() => mock.requests.length).toBe(1);
     expect(mock.requests[0].data.meetingRequested).toBe('yes');
     await expect(page.getByRole('heading', { name: 'We received your message.' })).toBeVisible();
@@ -589,7 +620,7 @@ test.describe('Malone consumer surface', () => {
   test('keyboard path and reduced motion remain usable', async ({ page }) => {
     const faults = observe(page);
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto('/contact', { waitUntil: 'networkidle' });
+    await page.goto('/contact/', { waitUntil: 'networkidle' });
     const visited = [];
     for (let index = 0; index < 18; index += 1) {
       await page.keyboard.press('Tab');

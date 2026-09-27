@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../../lib/paths';
+
 const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT?.trim() ?? '';
 const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(endpoint);
 ---
@@ -18,7 +20,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
     </div>
     <div>
       <p class="eyebrow">Secure project intake</p>
-      <h2>Route a message to Malone</h2>
+      <h2>Ask about IT help, websites, or business systems</h2>
     </div>
     <span class:list={['contact-channel-state', { 'is-ready': endpointReady }]}>
       <i></i>{endpointReady ? 'Channel ready' : 'Calibration pending'}
@@ -26,7 +28,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
   </header>
 
   <div class="contact-state-rail" data-state-rail data-state="input" aria-label="Submission progress">
-    <span data-state-step="input"><i></i>Input locked</span>
+    <span data-state-step="input"><i></i>Enter your details</span>
     <b aria-hidden="true"></b>
     <span data-state-step="routing"><i></i>Message routed</span>
     <b aria-hidden="true"></b>
@@ -122,14 +124,14 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
       <input type="checkbox" name="privacyConsent" value="yes" required />
       <span>
         I agree that Malone Integrated Tech may use and retain this request as described in the
-        {' '}<a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
+        {' '}<a href={withBase('/privacy')} target="_blank" rel="noopener noreferrer">Privacy Policy</a>.
       </span>
       <small data-error-for="privacyConsent"></small>
     </label>
 
     <div class="contact-form__footer">
       <button type="submit" class="signal-button contact-submit" data-submit-button>
-        <b data-submit-label>Route message</b><span aria-hidden="true">+</span>
+        <b data-submit-label>Send inquiry</b><span aria-hidden="true">+</span>
       </button>
       <p>Messages are emailed directly and recorded in Malone Client Operations for up to 90 days while the request is reviewed.</p>
     </div>
@@ -238,7 +240,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
         submitButton.setAttribute('aria-busy', String(next === 'routing'));
       }
       if (submitLabel) {
-        submitLabel.textContent = next === 'routing' ? 'Routing message' : 'Route message';
+        submitLabel.textContent = next === 'routing' ? 'Routing message' : 'Send inquiry';
       }
     };
 
@@ -305,7 +307,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
         meetingRequested: data.get('meetingRequested') === 'yes'
       };
 
-      setState('routing', 'Input locked. Routing your message now.');
+      setState('routing', 'Routing your inquiry now.');
       window.clearTimeout(responseTimer);
       responseTimer = window.setTimeout(() => {
         setState(
@@ -322,7 +324,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
     });
 
     window.addEventListener('message', (event) => {
-      if (!transport?.contentWindow || !isAllowedMessageOrigin(event.origin)) return;
+      if (!transport?.contentWindow || event.source !== transport.contentWindow || !isAllowedMessageOrigin(event.origin)) return;
       const result = event.data as {
         type?: string;
         requestId?: string;

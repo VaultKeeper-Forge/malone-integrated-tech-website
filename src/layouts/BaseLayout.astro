@@ -1,4 +1,4 @@
-﻿---
+---
 import '../styles/global.css';
 import { withBase } from '../lib/paths';
 import MaloneLens from '../components/ui/MaloneLens.astro';
@@ -15,7 +15,7 @@ const { title, description, currentPath = '/', noindex = false } = Astro.props;
 const siteOrigin = (Astro.site ?? new URL('https://www.maloneintegratedtech.com')).origin;
 const normalizedPath = currentPath === '/'
   ? '/'
-  : '/' + String(currentPath).replace(/^\/+|\/+$/g, '');
+  : '/' + String(currentPath).replace(/^\/+|\/+$/g, '') + '/';
 const canonical = new URL(normalizedPath, siteOrigin).toString();
 const socialImage = new URL('/brand/malone_lockup_horizontal_dark.png', siteOrigin).toString();
 const logoImage = new URL('/brand/malone_mark_primary.svg', siteOrigin).toString();
@@ -23,7 +23,7 @@ const organizationId = siteOrigin + '/#organization';
 const websiteId = siteOrigin + '/#website';
 const pageId = canonical + '#webpage';
 
-const pageKind = normalizedPath === '/contact'
+const pageKind = normalizedPath === '/contact/'
   ? 'ContactPage'
   : normalizedPath === '/'
     ? 'WebPage'
@@ -62,7 +62,6 @@ const schemaGraph: Record<string, unknown>[] = [
     },
     image: socialImage,
     email: 'curtis@maloneintegratedtech.com',
-    areaServed: 'US',
     knowsAbout: expertiseNames,
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
@@ -76,7 +75,9 @@ const schemaGraph: Record<string, unknown>[] = [
           '@type': 'Service',
           name: offer.name,
           serviceType: offer.name,
-          areaServed: 'US'
+          ...(offer.name === 'Local On-Site IT Support'
+            ? { areaServed: ['Amador County, California', 'Calaveras County, California', 'nearby foothill communities'] }
+            : {})
         }
       }))
     },
@@ -137,7 +138,7 @@ if (normalizedPath !== '/') {
   });
 }
 
-if (normalizedPath === '/services') {
+if (normalizedPath === '/services/') {
   const catalogItems = [
     ...allPublicOffers.map((offer) => ({
       name: offer.name,
@@ -167,8 +168,10 @@ if (normalizedPath === '/services') {
         name: offer.name,
         description: offer.description,
         provider: { '@id': organizationId },
-        areaServed: 'US',
         serviceType: offer.name,
+        ...(offer.name === 'Local On-Site IT Support'
+          ? { areaServed: ['Amador County, California', 'Calaveras County, California', 'nearby foothill communities'] }
+          : {}),
         offers: offer.priceMax
           ? {
               '@type': 'AggregateOffer',
@@ -189,7 +192,7 @@ if (normalizedPath === '/services') {
   });
 }
 
-if (normalizedPath === '/research') {
+if (normalizedPath === '/research/') {
   schemaGraph.push({
     '@type': 'ItemList',
     '@id': canonical + '#research',
@@ -202,7 +205,7 @@ if (normalizedPath === '/research') {
   });
 }
 
-if (normalizedPath === '/contact') {
+if (normalizedPath === '/contact/') {
   schemaGraph.push({
     '@type': 'ContactPoint',
     '@id': canonical + '#contact-point',
@@ -275,6 +278,6 @@ const structuredData = JSON.stringify({
     <div class="site-shell">
       <slot />
     </div>
-    {(normalizedPath === '/' || normalizedPath === '/projects') && <MaloneLens />}
+    {(normalizedPath === '/' || normalizedPath === '/projects/') && <MaloneLens />}
   </body>
 </html>
