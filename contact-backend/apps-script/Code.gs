@@ -14,7 +14,9 @@ const MALONE_CONTACT_CONFIG = Object.freeze({
     'Applied AI and R&D',
     'Something else'
   ]),
-  maxGlobalPerMinute: 30,
+  maxGlobalPerMinute: 5,
+  maxGlobalPerTenMinutes: 20,
+  maxGlobalPerDay: 100,
   maxPerEmailPerTenMinutes: 3,
   minimumFormAgeMs: 1500,
   maximumFormAgeMs: 7200000,
@@ -89,13 +91,13 @@ function doPost(e) {
       return contactSuccess_(payload.meetingRequested ? bookingUrl : '', requestId);
     }
 
-    const requiredQuota = existingState === 'owner_sent' ? 1 : 2;
+    const requiredQuota = existingState === 'owner_sent' ? 0 : 1;
     if (MailApp.getRemainingDailyQuota() < requiredQuota) {
       return contactError_('The message channel has reached its daily limit. Please use the direct email path.', requestId);
     }
 
-    if (!existingState) {
-      const rateResult = reserveRateLimit_(cache, payload.email);
+    if (existingState !== 'owner_sent') {
+      const rateResult = reserveRateLimit_(cache, properties, payload.email);
       if (!rateResult.ok) {
         return contactError_(rateResult.message, requestId);
       }
@@ -111,7 +113,6 @@ function doPost(e) {
       cache.put(requestKey, 'owner_sent', MALONE_CONTACT_CONFIG.requestStateSeconds);
     }
 
-    sendCustomerConfirmation_(payload, submittedAt, notificationTo, bookingUrl);
     cache.put(requestKey, 'complete', MALONE_CONTACT_CONFIG.requestStateSeconds);
 
     return contactSuccess_(payload.meetingRequested ? bookingUrl : '', requestId);
@@ -269,22 +270,39 @@ function invalid_(message) {
   return { ok: false, message: message };
 }
 
-function reserveRateLimit_(cache, email) {
-  const minuteBucket = Math.floor(Date.now() / 60000);
-  const globalKey = 'rate:global:' + minuteBucket;
-  const emailKey = 'rate:email:' + hash_(email);
-  const globalCount = Number(cache.get(globalKey) || 0);
-  const emailCount = Number(cache.get(emailKey) || 0);
-
-  if (globalCount >= MALONE_CONTACT_CONFIG.maxGlobalPerMinute) {
-    return invalid_('The message channel is receiving unusually high traffic. Please wait a moment and try again.');
+function reserveRateLimit_(cache, properties, email) {
+  // Called under the script lock. Durable shared budgets survive cache eviction
+  // and apply to retries as well as fresh submissions, before any side effect.
+  const now = Date.now();
+  const stateKey = 'MALONE_CONTACT_RATE_STATE_V1';
+  const raw = properties.getProperty(stateKey);
+  const state = raw ? JSON.parse(raw) : {};
+  if (!state || typeof state !== 'object' || Array.isArray(state)) {
+    throw new Error('Contact rate state is invalid.');
   }
-
+  const windows = [
+    ['minute', 60000, MALONE_CONTACT_CONFIG.maxGlobalPerMinute],
+    ['tenMinutes', 600000, MALONE_CONTACT_CONFIG.maxGlobalPerTenMinutes],
+    ['day', 86400000, MALONE_CONTACT_CONFIG.maxGlobalPerDay]
+  ];
+  for (const window of windows) {
+    const key = window[0];
+    const current = state[key];
+    if (current && (!Number.isFinite(current.until) || !Number.isInteger(current.count) || current.count < 0)) {
+      throw new Error('Contact rate state is invalid.');
+    }
+    if (!current || now >= current.until) state[key] = { until: now + window[1], count: 0 };
+    if (state[key].count >= window[2]) {
+      return invalid_('The message channel is receiving unusually high traffic. Please wait a moment and try again.');
+    }
+  }
+  const emailKey = 'rate:email:' + hash_(email);
+  const emailCount = Number(cache.get(emailKey) || 0);
   if (emailCount >= MALONE_CONTACT_CONFIG.maxPerEmailPerTenMinutes) {
     return invalid_('Please wait before sending another message from this email address.');
   }
-
-  cache.put(globalKey, String(globalCount + 1), 90);
+  for (const window of windows) state[window[0]].count += 1;
+  properties.setProperty(stateKey, JSON.stringify(state));
   cache.put(emailKey, String(emailCount + 1), 600);
   return { ok: true };
 }
@@ -318,45 +336,6 @@ function sendMaloneNotification_(payload, submittedAt, notificationTo) {
     htmlBody: buildMaloneHtml_(payload, timestamp, meetingLabel)
   });
 }
-function sendCustomerConfirmation_(payload, submittedAt, notificationTo, bookingUrl) {
-  const timestamp = formatTimestamp_(submittedAt);
-  const meetingLines = payload.meetingRequested
-    ? [
-        '',
-        'You asked to schedule an online discovery meeting.',
-        'Choose an available time here:',
-        bookingUrl
-      ]
-    : [];
-
-  const body = [
-    'We received your message. Here is a copy for your records.',
-    '',
-    'Name: ' + payload.name,
-    'Email: ' + payload.email,
-    'Organization: ' + (payload.organization || 'Not provided'),
-    'Category: ' + payload.category,
-    'Submitted: ' + timestamp,
-    '',
-    'YOUR MESSAGE',
-    '------------',
-    payload.message
-  ].concat(meetingLines).concat([
-    '',
-    'Malone Integrated Tech',
-    'https://www.maloneintegratedtech.com/contact'
-  ]).join('\n');
-
-  MailApp.sendEmail({
-    to: payload.email,
-    replyTo: notificationTo,
-    name: 'Malone Integrated Tech',
-    subject: 'We received your message | Malone Integrated Tech',
-    body: body,
-    htmlBody: buildCustomerHtml_(payload, timestamp, bookingUrl)
-  });
-}
-
 function buildMaloneHtml_(payload, timestamp, meetingLabel) {
   return [
     '<div style="font-family:Arial,sans-serif;background:#0a0c10;color:#f2f4f7;padding:28px">',
@@ -376,34 +355,6 @@ function buildMaloneHtml_(payload, timestamp, meetingLabel) {
     '<div style="white-space:pre-wrap;line-height:1.65;color:#f2f4f7;border-left:2px solid #1e7bff;padding-left:16px">',
     escapeHtml_(payload.message),
     '</div></div></div>'
-  ].join('');
-}
-
-function buildCustomerHtml_(payload, timestamp, bookingUrl) {
-  const booking = payload.meetingRequested && bookingUrl
-    ? [
-        '<div style="margin-top:26px;padding:20px;border:1px solid #1e7bff;background:#0d1623">',
-        '<p style="margin:0 0 14px;color:#f2f4f7">You asked to schedule an online discovery meeting.</p>',
-        '<a href="', escapeHtml_(bookingUrl), '" style="display:inline-block;background:#1e7bff;color:white;text-decoration:none;padding:13px 18px;font-weight:bold">',
-        'Schedule your discovery meeting</a></div>'
-      ].join('')
-    : '';
-
-  return [
-    '<div style="font-family:Arial,sans-serif;background:#0a0c10;color:#f2f4f7;padding:28px">',
-    '<div style="max-width:680px;margin:auto;border:1px solid #33404f;padding:28px">',
-    '<p style="color:#62a7ff;letter-spacing:.12em;text-transform:uppercase;font-size:12px;margin:0 0 10px">Message confirmed</p>',
-    '<h1 style="font-size:27px;margin:0 0 14px">We received your message.</h1>',
-    '<p style="color:#c7ccd4;line-height:1.6">Here is a copy for your records.</p>',
-    '<p style="color:#87919e;font-size:13px">Submitted ', escapeHtml_(timestamp), '</p>',
-    '<div style="margin-top:24px;padding:18px;border-left:2px solid #1e7bff;background:#0d1117">',
-    '<p style="margin:0 0 8px;color:#87919e;font-size:12px;text-transform:uppercase;letter-spacing:.1em">',
-    escapeHtml_(payload.category), '</p>',
-    '<div style="white-space:pre-wrap;line-height:1.65;color:#f2f4f7">', escapeHtml_(payload.message), '</div>',
-    '</div>', booking,
-    '<p style="margin-top:28px;color:#87919e;font-size:13px">Malone Integrated Tech<br>',
-    '<a href="https://www.maloneintegratedtech.com/contact" style="color:#62a7ff">www.maloneintegratedtech.com/contact</a></p>',
-    '</div></div>'
   ].join('');
 }
 
