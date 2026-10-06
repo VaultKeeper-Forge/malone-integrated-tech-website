@@ -61,6 +61,7 @@ function doPost(e) {
       properties.getProperty('MALONE_NOTIFICATION_TO') || MALONE_CONTACT_CONFIG.notificationTo
     );
     const bookingUrl = normalizeUrl_(properties.getProperty('BOOKING_URL') || '');
+    const meetingRequestsEnabled = properties.getProperty('MEETING_REQUESTS_ENABLED') === 'true';
     const bridgeEnabled = String(properties.getProperty('MALONE_INBOUND_LEAD_BRIDGE_ENABLED') || '').toLowerCase() === 'true';
     const bridgeEndpoint = normalizeUrl_(properties.getProperty('MALONE_INBOUND_LEAD_ENDPOINT') || MALONE_CONTACT_CONFIG.inboundLeadEndpoint);
     const bridgeSecret = String(properties.getProperty('MALONE_INBOUND_LEAD_HMAC_SECRET') || '');
@@ -69,7 +70,7 @@ function doPost(e) {
       return contactError_('Message routing is temporarily unavailable. Please use the direct email path.', requestId);
     }
 
-    if (payload.meetingRequested && !isGoogleBookingUrl_(bookingUrl)) {
+    if (payload.meetingRequested && (!meetingRequestsEnabled || !isGoogleBookingUrl_(bookingUrl))) {
       return contactError_('Online scheduling is being calibrated. Please uncheck the meeting request or use the direct email path.', requestId);
     }
 

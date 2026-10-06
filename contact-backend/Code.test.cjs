@@ -637,8 +637,37 @@ assert.equal(
 );
 assert.equal(lockStats.gets, 0);
 
-// Meeting backend contract and fail-closed malformed/missing configuration.
+// Direct requests must respect the hard-off release independently of a valid URL.
+for (const enabled of [undefined, '', 'false', 'TRUE', 'yes', '1', ' true ']) {
+  reset();
+  if (enabled !== undefined) props.MEETING_REQUESTS_ENABLED = enabled;
+  const request = base({ meetingRequested: 'yes' });
+  const response = post(request);
+  assert.equal(response.payload.ok, false, `Disabled meeting request accepted: ${enabled}`);
+  assert.equal(response.payload.bookingUrl, undefined);
+  assert.equal(inboundRequests.length, 0, 'Disabled meeting request recorded a lead.');
+  assert.equal(mailAttempts.length, 0, 'Disabled meeting request attempted mail.');
+  assert.equal(lockStats.gets, 0, 'Disabled meeting request reached locked state.');
+  assert.equal(cacheEvents.length, 0, 'Disabled meeting request touched cache.');
+  assert.equal(quotaEvents.length, 0, 'Disabled meeting request touched mail quota.');
+  assert.equal(props.MALONE_CONTACT_RATE_STATE_V1, undefined);
+  assertNoRecipientLeak(response);
+}
+
+// Even a cached completion must not disclose a URL after the release is disabled.
 reset();
+const disabledReplay = base({ meetingRequested: 'yes' });
+cache.set(requestKey(disabledReplay), 'complete');
+const disabledReplayResponse = post(disabledReplay);
+assert.equal(disabledReplayResponse.payload.ok, false);
+assert.equal(disabledReplayResponse.payload.bookingUrl, undefined);
+assert.equal(lockStats.gets, 0);
+assert.equal(inboundRequests.length, 0);
+assert.equal(mailAttempts.length, 0);
+
+// A future explicitly enabled configuration still requires a valid booking URL.
+reset();
+props.MEETING_REQUESTS_ENABLED = 'true';
 const meetingRequest = base({ category: 'Website help', meetingRequested: 'yes' });
 const meetingResponse = post(meetingRequest);
 assert.equal(meetingResponse.payload.ok, true);
@@ -661,6 +690,7 @@ for (const bookingUrl of [
   'https://example.com/not-google-scheduling',
 ]) {
   reset();
+  props.MEETING_REQUESTS_ENABLED = 'true';
   if (bookingUrl) props.BOOKING_URL = bookingUrl;
   else delete props.BOOKING_URL;
   const response = post(base({ meetingRequested: 'yes' }));

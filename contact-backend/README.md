@@ -32,10 +32,13 @@ separately authorized release says otherwise.
 | `MALONE_NOTIFICATION_TO` | Optional override. When unset, the backend uses the safe production default `curtis@maloneintegratedtech.com`. |
 | `ALLOWED_ORIGIN` | Optional override. When unset, the backend uses the current production origin `https://www.maloneintegratedtech.com`. |
 | `BOOKING_URL` | Optional, dormant backend-only configuration. Leave it unset for the current hard-off release. |
+| `MEETING_REQUESTS_ENABLED` | Defaults off. Only the exact string `true` permits the backend meeting path; leave unset or `false` for the current hard-off release. |
 
 If `BOOKING_URL` is ever configured, it must be an HTTPS Google scheduling URL.
-The backend fails closed for meeting requests when it is absent or malformed.
-Setting this property does not enable the public meeting interface by itself:
+The backend rejects direct meeting requests before lead recording, cache, quota,
+or mail side effects unless `MEETING_REQUESTS_ENABLED` is exactly `true` and the
+booking URL is valid. A configured URL alone does not enable backend acceptance.
+Setting these properties does not enable the public meeting interface by itself:
 the current frontend keeps that control hidden and disabled. Re-enabling meeting
 requests requires an explicit code and configuration change plus fresh live
 acceptance.
@@ -79,7 +82,7 @@ Do not commit:
 7. Submit a normal inquiry and confirm its request does not contain `meetingRequested=yes`.
 8. Confirm the Malone notification contains no discovery-meeting marker or scheduling link.
 9. Confirm the browser confirmation state does not expose a scheduling link.
-10. Run the backend harness and confirm a direct meeting request fails closed without sending mail when `BOOKING_URL` is absent or malformed.
+10. Run the backend harness and confirm direct meeting requests fail closed without lead recording, cache, mail, or scheduling-link disclosure when `MEETING_REQUESTS_ENABLED` is absent/disabled, even with a valid `BOOKING_URL` or cached completion. Explicitly enabled requests must still reject absent or malformed URLs.
 
 ## Future meeting re-enable procedure (not currently authorized)
 
@@ -87,7 +90,7 @@ Do not perform these steps under the current release authority. A future meeting
 release requires all of the following:
 
 1. Obtain explicit owner authorization and the approved Google Appointment Schedule URL.
-2. Configure `BOOKING_URL` and make an explicit frontend change that unhides and enables the accessible meeting control where appropriate.
+2. Configure `BOOKING_URL` and explicitly set `MEETING_REQUESTS_ENABLED=true` only under that future authorization; make a matching frontend change that unhides and enables the accessible meeting control where appropriate.
 3. Update the frontend and backend acceptance tests for the newly authorized behavior.
 4. Deploy a new immutable Apps Script version and the matching frontend release.
 5. Repeat live acceptance for the browser response, owner notification, scheduling link, duplicate prevention, and the authorized test appointment lifecycle.
