@@ -48,6 +48,7 @@ let lockHeld = false;
 let failRecipientOnce = '';
 let inboundResponseCode = 201;
 let inboundResponseOverride = null;
+let failRatePersistence = false;
 
 function requireLock(operation) {
   assert.equal(lockHeld, true, `${operation} occurred without the script lock.`);
@@ -116,6 +117,11 @@ const context = {
   PropertiesService: {
     getScriptProperties: () => ({
       getProperty: (key) => props[key] ?? null,
+      setProperty(key, value) {
+        requireLock('Properties set');
+        if (failRatePersistence) throw new Error('Simulated persistence failure');
+        props[key] = String(value);
+      },
     }),
   },
   MailApp: {
@@ -276,6 +282,7 @@ function reset() {
   failRecipientOnce = '';
   inboundResponseCode = 201;
   inboundResponseOverride = null;
+  failRatePersistence = false;
   nowMs = fixedNowMs;
   for (const key of Object.keys(props)) delete props[key];
   Object.assign(props, defaultProps);
@@ -287,7 +294,7 @@ function base(overrides = {}) {
     email: 'external.test@example.com',
     organization: 'Verification Lab',
     category: categories[0],
-    message: 'This complete message must appear in both independent email paths.',
+    message: 'This complete message must appear in the owner notification.',
     website: '',
     formId: 'malone-contact-v1',
     requestId: crypto.randomUUID(),
@@ -366,7 +373,7 @@ function assertNoBooking(response, mails) {
 }
 
 function assertNoRawCacheOrLogs(request) {
-  const cacheText = JSON.stringify([...cache.entries()]);
+  const cacheText = JSON.stringify([...cache.entries()]) + (props.MALONE_CONTACT_RATE_STATE_V1 || '');
   const logText = JSON.stringify(logs);
   for (const raw of [
     request.name,
@@ -387,7 +394,7 @@ function expectAccepted(label, overrides) {
   const request = base(overrides);
   const response = post(request);
   assert.equal(response.payload.ok, true, `${label} should be accepted.`);
-  assert.equal(sent.length, 2, `${label} should send exactly two messages.`);
+  assert.equal(sent.length, 1, `${label} should send exactly one message.`);
   assertNoRecipientLeak(response);
   return { request, response };
 }
@@ -460,7 +467,7 @@ const standardResponse = post(standardRequest);
 assert.equal(inboundRequests.length, 1, 'Structured lead request was not attempted before the public failure response.');
 assert.equal(standardResponse.payload.ok, true, standardResponse.payload.message);
 assert.equal(standardResponse.payload.requestId, standardRequest.requestId);
-assert.equal(sent.length, 2, 'Valid standard submission must send exactly two emails.');
+assert.equal(sent.length, 1, 'Valid standard submission must send exactly one email.');
 assert.equal(inboundRequests[0].url, defaultProps.MALONE_INBOUND_LEAD_ENDPOINT);
 assert.equal(inboundRequests[0].parsed.requestId, standardRequest.requestId);
 assert.equal(inboundRequests[0].parsed.serviceLane, 'unsure');
@@ -478,7 +485,8 @@ const expectedInboundSignature = crypto
 assert.equal(inboundRequests[0].options.headers['X-Malone-Signature'], `sha256=${expectedInboundSignature}`);
 const owner = sent.find((mail) => recipient(mail) === defaultProps.MALONE_NOTIFICATION_TO);
 const customer = sent.find((mail) => recipient(mail) === standardRequest.email);
-assert(owner && customer, 'Owner and customer mail paths must both run.');
+assert(owner, 'Owner notification must run.');
+assert.equal(customer, undefined, 'Unverified recipient must never receive mail.');
 assertMailShape(owner, {
   label: 'Owner mail',
   to: defaultProps.MALONE_NOTIFICATION_TO,
@@ -486,20 +494,13 @@ assertMailShape(owner, {
   name: 'Malone Contact Desk',
   subject: `Malone website contact: ${standardRequest.category}`,
 });
-assertMailShape(customer, {
-  label: 'Customer mail',
-  to: standardRequest.email,
-  replyTo: defaultProps.MALONE_NOTIFICATION_TO,
-  name: 'Malone Integrated Tech',
-  subject: 'We received your message | Malone Integrated Tech',
-});
-for (const mail of [owner, customer]) {
+for (const mail of [owner]) {
   assert(mail.body.includes(standardRequest.message), 'Plain-text mail omitted the complete message.');
   assert(mail.htmlBody.includes('&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;'), 'HTML mail did not escape script markup.');
   assert(mail.htmlBody.includes('&amp; &#39;quoted&#39;'), 'HTML mail did not escape ampersand/apostrophe content.');
 }
 assert(owner.htmlBody.includes('A &amp; B &lt;Lab&gt;'), 'Owner HTML omitted or failed to escape organization.');
-assertNoBooking(standardResponse, [owner, customer]);
+assertNoBooking(standardResponse, [owner]);
 assertNoRecipientLeak(standardResponse);
 assert.equal(cache.get(requestKey(standardRequest)), 'complete', 'Request state was not completed.');
 assert.equal(lockStats.gets, 1, 'Standard request acquired more than one script lock.');
@@ -516,7 +517,7 @@ reset();
 const onsiteRequest = base({ category: 'Local on-site IT support' });
 const onsiteResponse = post(onsiteRequest);
 assert.equal(onsiteResponse.payload.ok, true);
-assert.equal(sent.length, 2);
+assert.equal(sent.length, 1);
 assert.equal(
   sent.find((mail) => mail.to === defaultProps.MALONE_NOTIFICATION_TO).subject,
   'Malone website contact: Local on-site IT support'
@@ -528,7 +529,7 @@ for (const [index, category] of categories.entries()) {
   reset();
   const response = post(base({ category, email: `category-${index}@example.com` }));
   assert.equal(response.payload.ok, true, `Frontend category rejected by backend: ${category}`);
-  assert.equal(sent.length, 2, `Frontend category did not send both messages: ${category}`);
+  assert.equal(sent.length, 1, `Frontend category did not send the owner notification: ${category}`);
 }
 assert.equal(categories[4].codePointAt(9), 0x2014, 'Approved uncertainty category lost its em dash.');
 
@@ -636,13 +637,42 @@ assert.equal(
 );
 assert.equal(lockStats.gets, 0);
 
-// Meeting backend contract and fail-closed malformed/missing configuration.
+// Direct requests must respect the hard-off release independently of a valid URL.
+for (const enabled of [undefined, '', 'false', 'TRUE', 'yes', '1', ' true ']) {
+  reset();
+  if (enabled !== undefined) props.MEETING_REQUESTS_ENABLED = enabled;
+  const request = base({ meetingRequested: 'yes' });
+  const response = post(request);
+  assert.equal(response.payload.ok, false, `Disabled meeting request accepted: ${enabled}`);
+  assert.equal(response.payload.bookingUrl, undefined);
+  assert.equal(inboundRequests.length, 0, 'Disabled meeting request recorded a lead.');
+  assert.equal(mailAttempts.length, 0, 'Disabled meeting request attempted mail.');
+  assert.equal(lockStats.gets, 0, 'Disabled meeting request reached locked state.');
+  assert.equal(cacheEvents.length, 0, 'Disabled meeting request touched cache.');
+  assert.equal(quotaEvents.length, 0, 'Disabled meeting request touched mail quota.');
+  assert.equal(props.MALONE_CONTACT_RATE_STATE_V1, undefined);
+  assertNoRecipientLeak(response);
+}
+
+// Even a cached completion must not disclose a URL after the release is disabled.
 reset();
+const disabledReplay = base({ meetingRequested: 'yes' });
+cache.set(requestKey(disabledReplay), 'complete');
+const disabledReplayResponse = post(disabledReplay);
+assert.equal(disabledReplayResponse.payload.ok, false);
+assert.equal(disabledReplayResponse.payload.bookingUrl, undefined);
+assert.equal(lockStats.gets, 0);
+assert.equal(inboundRequests.length, 0);
+assert.equal(mailAttempts.length, 0);
+
+// A future explicitly enabled configuration still requires a valid booking URL.
+reset();
+props.MEETING_REQUESTS_ENABLED = 'true';
 const meetingRequest = base({ category: 'Website help', meetingRequested: 'yes' });
 const meetingResponse = post(meetingRequest);
 assert.equal(meetingResponse.payload.ok, true);
 assert.equal(meetingResponse.payload.bookingUrl, defaultProps.BOOKING_URL);
-assert.equal(sent.length, 2, 'Meeting request must send both emails.');
+assert.equal(sent.length, 1, 'Meeting request must send the owner notification.');
 const meetingOwner = sent.find((mail) => recipient(mail) === defaultProps.MALONE_NOTIFICATION_TO);
 const meetingCustomer = sent.find((mail) => recipient(mail) === meetingRequest.email);
 assert.equal(
@@ -650,7 +680,7 @@ assert.equal(
   '[DISCOVERY MEETING REQUESTED] Malone website contact: Website help'
 );
 assert(/DISCOVERY MEETING REQUESTED/.test(mailContent(meetingOwner)));
-assert(mailContent(meetingCustomer).includes(defaultProps.BOOKING_URL));
+assert.equal(meetingCustomer, undefined, 'Meeting requests must not email unverified recipients.');
 assertNoRecipientLeak(meetingResponse);
 
 for (const bookingUrl of [
@@ -660,6 +690,7 @@ for (const bookingUrl of [
   'https://example.com/not-google-scheduling',
 ]) {
   reset();
+  props.MEETING_REQUESTS_ENABLED = 'true';
   if (bookingUrl) props.BOOKING_URL = bookingUrl;
   else delete props.BOOKING_URL;
   const response = post(base({ meetingRequested: 'yes' }));
@@ -718,48 +749,27 @@ const firstDuplicateResponse = post(duplicateRequest);
 const secondDuplicateResponse = post(duplicateRequest);
 assert.equal(firstDuplicateResponse.payload.ok, true);
 assert.equal(secondDuplicateResponse.payload.ok, true);
-assert.equal(sent.length, 2, 'Duplicate requestId sent duplicate mail.');
-assert.equal(mailAttempts.length, 2, 'Duplicate requestId attempted duplicate mail.');
+assert.equal(sent.length, 1, 'Duplicate requestId sent duplicate mail.');
+assert.equal(mailAttempts.length, 1, 'Duplicate requestId attempted duplicate mail.');
 assert.equal(inboundRequests.length, 1, 'Duplicate requestId recorded a duplicate lead request.');
 assert.equal(lockStats.gets, 2);
 assert.equal(lockStats.releases, 2);
 assert.equal(cache.get(requestKey(duplicateRequest)), 'complete');
 const duplicateRateEntries = [...cache.entries()].filter(([key]) => key.startsWith('rate:'));
-assert.equal(duplicateRateEntries.length, 2);
+assert.equal(duplicateRateEntries.length, 1);
 assert(duplicateRateEntries.every(([, value]) => value === '1'), 'Replay incremented rate counters.');
 
-// A customer-mail failure preserves owner_sent and retries only the customer path.
+// Owner mail failure retries delivery without repeating recorded lead ingress.
 reset();
-const partialRequest = base({
-  name: 'Partial Delivery Probe',
-  email: 'partial-delivery@example.com',
-  organization: 'Reliability Lab',
-  message: 'Unique partial delivery content must never enter cache or logs.',
-});
-failRecipientOnce = partialRequest.email;
-const partialFailure = post(partialRequest);
-assert.equal(partialFailure.payload.ok, false);
-assert.equal(
-  partialFailure.payload.message,
-  'The message could not be confirmed. Please try again or use the direct email path.'
-);
-assert.equal(sent.length, 1, 'Owner message should complete before simulated customer failure.');
-assert.equal(sent[0].to, defaultProps.MALONE_NOTIFICATION_TO);
-assert.equal(cache.get(requestKey(partialRequest)), 'owner_sent');
-assert.equal(lockStats.releases, 1, 'Failure path leaked the script lock.');
-quota = 1;
-const partialRetry = post(partialRequest);
-assert.equal(partialRetry.payload.ok, true, 'owner_sent retry did not complete with one mail quota.');
-assert.equal(cache.get(requestKey(partialRequest)), 'complete');
-assert.equal(sent.filter((mail) => mail.to === defaultProps.MALONE_NOTIFICATION_TO).length, 1);
-assert.equal(sent.filter((mail) => mail.to === partialRequest.email).length, 1);
-assert.equal(mailAttempts.filter((mail) => mail.to === defaultProps.MALONE_NOTIFICATION_TO).length, 1);
-assert.equal(mailAttempts.filter((mail) => mail.to === partialRequest.email).length, 2);
-assert.equal(inboundRequests.length, 1, 'Partial mail retry repeated the lead-ingress request.');
-assert.equal(lockStats.gets, 2);
-assert.equal(lockStats.releases, 2);
-const partialRateEntries = [...cache.entries()].filter(([key]) => key.startsWith('rate:'));
-assert(partialRateEntries.every(([, value]) => value === '1'), 'Partial retry incremented rate state.');
+const partialRequest = base();
+failRecipientOnce = defaultProps.MALONE_NOTIFICATION_TO;
+assert.equal(post(partialRequest).payload.ok, false);
+assert.equal(sent.length, 0);
+assert.equal(cache.get(requestKey(partialRequest)), 'lead_recorded');
+assert.equal(post(partialRequest).payload.ok, true);
+assert.equal(sent.length, 1);
+assert.equal(inboundRequests.length, 1);
+assert.equal(JSON.parse(props.MALONE_CONTACT_RATE_STATE_V1).minute.count, 2);
 assertNoRawCacheOrLogs(partialRequest);
 
 // Per-email and global throttles return their exact public-safe responses.
@@ -771,7 +781,7 @@ for (let index = 0; index < 4; index += 1) {
     email: 'rate-probe@example.com',
   }));
 }
-assert.equal(sent.length, 6, 'Fourth per-email submission was not rate limited.');
+assert.equal(sent.length, 3, 'Fourth per-email submission was not rate limited.');
 assert.equal(perEmailResponse.payload.ok, false);
 assert.equal(
   perEmailResponse.payload.message,
@@ -781,13 +791,13 @@ assertNoRecipientLeak(perEmailResponse);
 
 reset();
 let globalResponse;
-for (let index = 0; index < 31; index += 1) {
+for (let index = 0; index < 6; index += 1) {
   globalResponse = post(base({
     requestId: crypto.randomUUID(),
     email: `global-rate-${index}@example.com`,
   }));
 }
-assert.equal(sent.length, 60, 'Thirty-first global submission was not rate limited.');
+assert.equal(sent.length, 5, 'Sixth global submission was not rate limited.');
 assert.equal(globalResponse.payload.ok, false);
 assert.equal(
   globalResponse.payload.message,
@@ -795,9 +805,9 @@ assert.equal(
 );
 assertNoRecipientLeak(globalResponse);
 
-// Fresh submissions require two quota units and must not reserve rate state when quota is absent.
+// Fresh submissions require one quota unit and must not reserve rate state when quota is absent.
 reset();
-quota = 1;
+quota = 0;
 const quotaResponse = post(base());
 assert.equal(quotaResponse.payload.ok, false);
 assert.equal(
@@ -810,13 +820,68 @@ assert.equal([...cache.keys()].filter((key) => key.startsWith('request:')).lengt
 assert.equal(lockStats.releases, 1);
 assertNoRecipientLeak(quotaResponse);
 
+// Longer shared budgets survive cache eviction and rotating addresses/IDs.
+reset();
+for (let i = 0; i < 20; i += 1) {
+  nowMs = fixedNowMs + Math.floor(i / 5) * 61000;
+  cache.clear();
+  assert.equal(post(base({ email: 'rotating-' + i + '@example.com' })).payload.ok, true);
+}
+nowMs += 61000;
+cache.clear();
+assert.equal(post(base({ email: 'new@example.com' })).payload.ok, false);
+assert.equal(sent.length, 20);
+reset();
+for (let i = 0; i < 100; i += 1) {
+  nowMs = fixedNowMs + i * 61000;
+  cache.clear();
+  assert.equal(post(base({ email: 'daily-' + i + '@example.com' })).payload.ok, true);
+}
+nowMs += 61000;
+cache.clear();
+assert.equal(post(base()).payload.ok, false);
+assert.equal(sent.length, 100);
+nowMs = fixedNowMs + 86400000;
+assert.equal(post(base()).payload.ok, true, 'Shared budget must recover after its window.');
+reset();
+props.MALONE_CONTACT_RATE_STATE_V1 = '{invalid';
+assert.equal(post(base()).payload.ok, false);
+assert.equal(sent.length, 0);
+assert.equal(inboundRequests.length, 0);
+
+for (const invalidState of ['null', '[]', '{"minute":{"count":-1,"until":1}}']) {
+  reset();
+  props.MALONE_CONTACT_RATE_STATE_V1 = invalidState;
+  assert.equal(post(base()).payload.ok, false);
+  assert.equal(sent.length, 0);
+  assert.equal(inboundRequests.length, 0);
+}
+reset();
+failRatePersistence = true;
+assert.equal(post(base()).payload.ok, false);
+assert.equal(sent.length, 0);
+assert.equal(inboundRequests.length, 0);
+reset();
+const repeatedFailure = base();
+failRecipientOnce = defaultProps.MALONE_NOTIFICATION_TO;
+post(repeatedFailure);
+cache.clear();
+for (let i = 0; i < 4; i += 1) {
+  failRecipientOnce = defaultProps.MALONE_NOTIFICATION_TO;
+  post(base({ email: 'failure-' + i + '@example.com' }));
+}
+cache.clear();
+assert.equal(post(base()).payload.ok, false);
+assert.equal(mailAttempts.length, 5, 'Failed attempts must consume shared budget.');
+assert.equal(sent.length, 0);
+
 // The bridge remains independently switchable and preserves the existing mail path while disabled.
 reset();
 props.MALONE_INBOUND_LEAD_BRIDGE_ENABLED = 'false';
 const disabledBridgeResponse = post(base());
 assert.equal(disabledBridgeResponse.payload.ok, true);
 assert.equal(inboundRequests.length, 0);
-assert.equal(sent.length, 2);
+assert.equal(sent.length, 1);
 
 // Enabled bridge configuration and receipt mismatches fail closed before mail is sent.
 reset();
@@ -853,7 +918,9 @@ process.stdout.write(JSON.stringify({
   singleLockStateAndMail: true,
   lockBusyFailClosed: true,
   serialReplay: true,
-  partialDeliveryRetry: true,
+  ownerDeliveryRetry: true,
+  noUnverifiedRecipientMail: true,
+  persistentTenMinuteAndDailyBudgets: true,
   perEmailRateLimit: true,
   globalRateLimit: true,
   quotaGuard: true,
