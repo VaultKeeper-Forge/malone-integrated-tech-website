@@ -3,6 +3,9 @@ import { withBase } from '../../lib/paths';
 
 const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT?.trim() ?? '';
 const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(endpoint);
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? '';
+const turnstileReady = /^[A-Za-z0-9_-]{10,128}$/.test(turnstileSiteKey);
+const intakeReady = endpointReady && turnstileReady;
 ---
 
 <div class="contact-form-frame reveal" data-contact-shell>
@@ -22,8 +25,8 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
       <p class="eyebrow">Secure project intake</p>
       <h2>Ask about IT help, websites, or business systems</h2>
     </div>
-    <span class:list={['contact-channel-state', { 'is-ready': endpointReady }]}>
-      <i></i>{endpointReady ? 'Channel ready' : 'Calibration pending'}
+    <span class:list={['contact-channel-state', { 'is-ready': intakeReady }]}>
+      <i></i>{intakeReady ? 'Channel ready' : 'Calibration pending'}
     </span>
   </header>
 
@@ -38,7 +41,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
   <form
     id="contact-form"
     class="contact-form"
-    action={endpointReady ? endpoint : undefined}
+    action={intakeReady ? endpoint : undefined}
     method="post"
     target="contact-transport"
     data-contact-form
@@ -48,6 +51,9 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
     <input type="hidden" name="formId" value="malone-contact-v1" />
     <input type="hidden" name="requestId" data-request-id />
     <input type="hidden" name="formStartedAt" data-started-at />
+
+    {intakeReady && <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-action="contact-intake"></div>}
+    {!intakeReady && <p role="status">Secure form routing is being configured. Please use the direct email option beside this form.</p>}
 
     <label class="contact-bot-trap" aria-hidden="true">
       <span>Website</span>
@@ -130,7 +136,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
     </label>
 
     <div class="contact-form__footer">
-      <button type="submit" class="signal-button contact-submit" data-submit-button>
+      <button type="submit" class="signal-button contact-submit" data-submit-button disabled={!intakeReady}>
         <b data-submit-label>Send inquiry</b><span aria-hidden="true">+</span>
       </button>
       <p>Messages are emailed directly and recorded in Malone Client Operations for up to 90 days while the request is reviewed.</p>
@@ -211,6 +217,11 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
       const startedAt = form?.querySelector('[data-started-at]') as HTMLInputElement | null;
       if (requestId) requestId.value = makeRequestId();
       if (startedAt) startedAt.value = String(Date.now());
+    };
+
+    const resetTurnstile = () => {
+      const turnstileWindow = window as Window & { turnstile?: { reset: () => void } };
+      turnstileWindow.turnstile?.reset();
     };
 
     const syncIntakeMode = () => {
@@ -310,6 +321,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
       setState('routing', 'Routing your inquiry now.');
       window.clearTimeout(responseTimer);
       responseTimer = window.setTimeout(() => {
+        resetTurnstile();
         setState(
           'error',
           'We could not confirm whether your message arrived. Delivery may already have succeeded, so check your inbox before retrying or use the direct email path.'
@@ -338,6 +350,7 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
       window.clearTimeout(responseTimer);
 
       if (!result.ok || !form) {
+        resetTurnstile();
         setState('error', result.message || 'The message could not be confirmed. Please try again.');
         return;
       }
@@ -397,3 +410,5 @@ const endpointReady = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+
     resetEnvelope();
   </script>
 </div>
+
+{intakeReady && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}

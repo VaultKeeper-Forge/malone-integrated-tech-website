@@ -36,6 +36,7 @@ jobs:
         run: npm run build:pages -- --site https://www.maloneintegratedtech.com --base /
         env:
           PUBLIC_CONTACT_ENDPOINT: ${{ vars.PUBLIC_CONTACT_ENDPOINT }}
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
 
       - name: Verify contact backend
         run: node contact-backend/Code.test.cjs contact-backend/apps-script/Code.gs dist/contact/index.html

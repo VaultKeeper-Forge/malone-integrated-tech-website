@@ -18,6 +18,9 @@ const MALONE_CONTACT_CONFIG = Object.freeze({
   maxGlobalPerTenMinutes: 20,
   maxGlobalPerDay: 100,
   maxPerEmailPerTenMinutes: 3,
+  turnstileVerifyUrl: 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+  turnstileAllowedHostnames: Object.freeze(['maloneintegratedtech.com', 'www.maloneintegratedtech.com']),
+  turnstileAction: 'contact-intake',
   minimumFormAgeMs: 1500,
   maximumFormAgeMs: 7200000,
   requestStateSeconds: 900,
@@ -57,6 +60,9 @@ function doPost(e) {
     }
 
     const properties = PropertiesService.getScriptProperties();
+    if (!verifyTurnstile_(payload.turnstileToken, properties)) {
+      return contactError_('Human verification could not be confirmed. Please complete the security check and try again.', requestId);
+    }
     const notificationTo = normalizeEmail_(
       properties.getProperty('MALONE_NOTIFICATION_TO') || MALONE_CONTACT_CONFIG.notificationTo
     );
@@ -138,8 +144,30 @@ function normalizePayload_(parameters) {
     category: safeText_(parameters.category),
     message: safeMultiline_(parameters.message),
     meetingRequested: String(parameters.meetingRequested || '').toLowerCase() === 'yes',
-    privacyConsent: String(parameters.privacyConsent || '').toLowerCase() === 'yes'
+    privacyConsent: String(parameters.privacyConsent || '').toLowerCase() === 'yes',
+    turnstileToken: safeText_(parameters['cf-turnstile-response'], 2048)
   };
+}
+
+function verifyTurnstile_(token, properties) {
+  const secret = String(properties.getProperty('TURNSTILE_SECRET') || '');
+  if (!secret || !token || token.length > 2048) return false;
+
+  try {
+    const response = UrlFetchApp.fetch(MALONE_CONTACT_CONFIG.turnstileVerifyUrl, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify({ secret: secret, response: token }),
+      muteHttpExceptions: true
+    });
+    if (response.getResponseCode() !== 200) return false;
+    const result = JSON.parse(response.getContentText());
+    return result.success === true &&
+      MALONE_CONTACT_CONFIG.turnstileAllowedHostnames.indexOf(String(result.hostname || '').toLowerCase()) !== -1 &&
+      result.action === MALONE_CONTACT_CONFIG.turnstileAction;
+  } catch (_error) {
+    return false;
+  }
 }
 
 function validatePayload_(payload, submittedAt) {
