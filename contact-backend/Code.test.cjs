@@ -30,6 +30,7 @@ const defaultProps = Object.freeze({
   MALONE_INBOUND_LEAD_BRIDGE_ENABLED: 'true',
   MALONE_INBOUND_LEAD_ENDPOINT: 'https://malone-client-operations-platform.vercel.app/api/inbound-leads',
   MALONE_INBOUND_LEAD_HMAC_SECRET: 'test-secret-with-at-least-thirty-two-bytes',
+  TURNSTILE_SECRET: 'test-turnstile-secret',
 });
 const props = { ...defaultProps };
 const cache = new Map();
@@ -39,6 +40,10 @@ const mailAttempts = [];
 const quotaEvents = [];
 const logs = [];
 const inboundRequests = [];
+const turnstileRequests = [];
+const usedTurnstileTokens = new Set();
+let turnstileStatusCode = 200;
+let turnstileResult = { success: true, hostname: 'www.maloneintegratedtech.com', action: 'contact-intake' };
 const htmlOutputs = [];
 const lockStats = { gets: 0, tries: 0, releases: 0, timeouts: [] };
 let cacheServiceGets = 0;
@@ -143,6 +148,18 @@ const context = {
   },
   UrlFetchApp: {
     fetch(url, options) {
+      if (url === 'https://challenges.cloudflare.com/turnstile/v0/siteverify') {
+        assert.equal(lockHeld, false, 'Turnstile verification must happen before the script lock is acquired.');
+        const parsed = JSON.parse(options.payload);
+        turnstileRequests.push({ url, parsed, lockHeld });
+        const validToken = /^valid-turnstile-token-[A-Za-z0-9-]+$/.test(parsed.response) && !usedTurnstileTokens.has(parsed.response);
+        if (validToken) usedTurnstileTokens.add(parsed.response);
+        const result = validToken ? turnstileResult : { success: false };
+        return {
+          getResponseCode: () => turnstileStatusCode,
+          getContentText: () => JSON.stringify(result),
+        };
+      }
       requireLock('UrlFetchApp.fetch');
       const parsed = JSON.parse(options.payload);
       inboundRequests.push({ url, options: { ...options, headers: { ...options.headers } }, parsed, lockHeld });
@@ -261,6 +278,8 @@ assert.match(
   /<input[^>]*name="privacyConsent"[^>]*required[^>]*>/i,
   'Production build must require the published privacy notice.'
 );
+assert.match(html, /class="cf-turnstile"[^>]*data-action="contact-intake"/i, 'Built form must render the configured Turnstile action.');
+assert.match(html, /challenges\.cloudflare\.com\/turnstile\/v0\/api\.js/i, 'Built form must load the Turnstile client script.');
 
 function reset() {
   cache.clear();
@@ -270,6 +289,8 @@ function reset() {
   quotaEvents.length = 0;
   logs.length = 0;
   inboundRequests.length = 0;
+  turnstileRequests.length = 0;
+  usedTurnstileTokens.clear();
   htmlOutputs.length = 0;
   lockStats.gets = 0;
   lockStats.tries = 0;
@@ -282,6 +303,8 @@ function reset() {
   failRecipientOnce = '';
   inboundResponseCode = 201;
   inboundResponseOverride = null;
+  turnstileStatusCode = 200;
+  turnstileResult = { success: true, hostname: 'www.maloneintegratedtech.com', action: 'contact-intake' };
   failRatePersistence = false;
   nowMs = fixedNowMs;
   for (const key of Object.keys(props)) delete props[key];
@@ -289,6 +312,7 @@ function reset() {
 }
 
 function base(overrides = {}) {
+  const requestId = crypto.randomUUID();
   return {
     name: 'External Contact Test',
     email: 'external.test@example.com',
@@ -297,9 +321,10 @@ function base(overrides = {}) {
     message: 'This complete message must appear in the owner notification.',
     website: '',
     formId: 'malone-contact-v1',
-    requestId: crypto.randomUUID(),
+    requestId,
     formStartedAt: String(nowMs - 5000),
     privacyConsent: 'yes',
+    'cf-turnstile-response': `valid-turnstile-token-${requestId}`,
     ...overrides,
   };
 }
@@ -524,6 +549,32 @@ assert.equal(
 );
 assertNoBooking(onsiteResponse, sent);
 
+// Caller-controlled timestamps/emails never replace the server-verified one-use challenge.
+reset();
+props.TURNSTILE_SECRET = '';
+assert.equal(post(base()).payload.ok, false, 'Missing Turnstile secret must fail closed.');
+assert.equal(turnstileRequests.length, 0);
+assert.equal(lockStats.gets, 0);
+assert.equal(sent.length, 0);
+
+reset();
+turnstileResult = { success: true, hostname: 'attacker.example', action: 'contact-intake' };
+assert.equal(post(base()).payload.ok, false, 'Unexpected challenge hostname must be rejected.');
+assert.equal(lockStats.gets, 0);
+assert.equal(sent.length, 0);
+
+reset();
+turnstileResult = { success: true, hostname: 'www.maloneintegratedtech.com', action: 'other-action' };
+assert.equal(post(base()).payload.ok, false, 'Unexpected challenge action must be rejected.');
+assert.equal(lockStats.gets, 0);
+assert.equal(sent.length, 0);
+
+reset();
+turnstileStatusCode = 503;
+assert.equal(post(base()).payload.ok, false, 'Challenge provider failure must fail closed.');
+assert.equal(lockStats.gets, 0);
+assert.equal(sent.length, 0);
+
 // Every built category must pass the actual backend validator, including exact U+2014.
 for (const [index, category] of categories.entries()) {
   reset();
@@ -746,7 +797,7 @@ assert.equal(sent.length, 0);
 reset();
 const duplicateRequest = base();
 const firstDuplicateResponse = post(duplicateRequest);
-const secondDuplicateResponse = post(duplicateRequest);
+const secondDuplicateResponse = post({ ...duplicateRequest, 'cf-turnstile-response': 'valid-turnstile-token-retry-duplicate' });
 assert.equal(firstDuplicateResponse.payload.ok, true);
 assert.equal(secondDuplicateResponse.payload.ok, true);
 assert.equal(sent.length, 1, 'Duplicate requestId sent duplicate mail.');
@@ -766,7 +817,7 @@ failRecipientOnce = defaultProps.MALONE_NOTIFICATION_TO;
 assert.equal(post(partialRequest).payload.ok, false);
 assert.equal(sent.length, 0);
 assert.equal(cache.get(requestKey(partialRequest)), 'lead_recorded');
-assert.equal(post(partialRequest).payload.ok, true);
+assert.equal(post({ ...partialRequest, 'cf-turnstile-response': 'valid-turnstile-token-retry-partial' }).payload.ok, true);
 assert.equal(sent.length, 1);
 assert.equal(inboundRequests.length, 1);
 assert.equal(JSON.parse(props.MALONE_CONTACT_RATE_STATE_V1).minute.count, 2);

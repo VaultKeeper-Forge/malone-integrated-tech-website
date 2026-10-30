@@ -17,5 +17,16 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run typecheck
-      - run: npm run build
+      - name: Build with nonproduction contact fixtures
+        run: npm run build
+        env:
+          # Render-only fixtures; no submissions or provider calls are made.
+          PUBLIC_CONTACT_ENDPOINT: https://script.google.com/macros/s/CI_TEST_ONLY/exec
+          PUBLIC_TURNSTILE_SITE_KEY: ci-test-only-site-key
       - run: node contact-backend/Code.test.cjs contact-backend/apps-script/Code.gs dist/contact/index.html
+      - name: Build without contact configuration
+        run: npm run build
+        env:
+          PUBLIC_CONTACT_ENDPOINT: ''
+          PUBLIC_TURNSTILE_SITE_KEY: ''
+      - run: node scripts/verify-contact-unconfigured.cjs dist/contact/index.html
